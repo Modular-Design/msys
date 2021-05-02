@@ -1,4 +1,4 @@
-from src.mdd.core.unit import UniqueUnit
+from ..unit import UniqueUnit
 from .connectable import ConnectableInterface
 
 

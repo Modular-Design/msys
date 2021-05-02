@@ -10,3 +10,4 @@ class Module(UniqueUnit):
 
     def getchilds(self) -> []:
         return self.inputs + self.outputs
+
