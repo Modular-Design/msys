@@ -20,19 +20,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6c607fd0-b6a3-4eda-9a09-dff1b6e340ed" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/examples/list_all.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mdd/modules/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mdd/modules/math/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mdd/modules/sql/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mdd/processors/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_modules.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/mdd.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mdd.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mdd/modules/processor/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/setup.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mdd/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/mdd/core/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mdd/core/connection/input.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/mdd/core/connection/input.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mdd/core/connection/output.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/mdd/core/connection/output.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/mdd/core/module.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/mdd/core/module.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mdd/core/unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/mdd/core/unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mdd/modules/math/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/mdd/modules/math/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mdd/processors/__init__.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,6 +56,7 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Willi\Documents\projects\mdd_core\mdd\src\mdd\modules" />
       <recent name="C:\Users\Willi\Documents\projects\mdd_core\mdd\src\mdd\modules\math" />
     </key>
     <key name="CopyFile.RECENT_KEYS">

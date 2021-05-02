@@ -11,3 +11,12 @@ class Module(UniqueUnit):
     def getchilds(self) -> []:
         return self.inputs + self.outputs
 
+    def toDict(self) -> dict:
+        res = super().toDict()
+        options = []
+        for o in self.options:
+            options.append(o.toDict())
+        res["options"] = options
+        return res
+
+

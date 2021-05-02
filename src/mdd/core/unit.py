@@ -41,7 +41,7 @@ class UnitInterface(SerializerInterface):
 
 
 class Unit(UnitInterface):
-    def __init__(self, id: str, parent=None, metadata=Metadata):
+    def __init__(self, id: str, parent=None, metadata=Metadata()):
         self.id = id
         self.metadata = metadata
         self.parent = parent
@@ -148,7 +148,7 @@ class Unit(UnitInterface):
         res = dict(id=self.id)
 
         if self.metadata:
-            res.update({"metadata": self.metadata})
+            res.update({"metadata": self.metadata.toDict()})
 
         return res
 
