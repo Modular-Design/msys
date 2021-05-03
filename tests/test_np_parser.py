@@ -14,7 +14,7 @@ import numpy as np
 def test_simple_expr(string, expected):
     parser = NumericStringParser()
     result = parser.eval(string)
-    if isinstance(, np.array()):
+    if isinstance(result, np.ndarray):
         for i in range(len(expected)):
             assert result[i] == expected[i]
     else:
