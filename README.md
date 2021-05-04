@@ -31,7 +31,7 @@ Legend:
 | Inputs and Outputs                   | ✅     |
 | Module                               | ✅     |
 | Processor                            | ✅     |
-| Expression parser                    | ✅     |
+| Expression Parser                    | ✅     |
 | Optimizer                            | 🔜     |
 | API                                  | 🔜     |
 
@@ -41,15 +41,16 @@ Legend:
 | Capability                           | Status |
 | ------------------------------------ | ------ |
 | Plugin system                        | ✅     |
-| Math module                          | 🔜     |
-| SQL module                           | 🟦     |
-| Processor                            | 🟦     |
+| Math Module                          | ✅     |
+| Processor                            | 🔜     |
+| SQL Module                           | 🟦     |
+
 
 ### Optimizers
 
 | Capability                           | Status |
 | ------------------------------------ | ------ |
-| Evolutionary optimisation            | 🟦     |
+| Evolutionary Optimisation            | 🟦     |
 
 ### Server
 
