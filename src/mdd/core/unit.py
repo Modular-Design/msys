@@ -4,13 +4,13 @@ from .metadata import Metadata
 
 
 class UnitInterface(SerializerInterface):
-    def getid(self) -> str:
+    def get_id(self) -> str:
         pass
 
     def identifier(self) -> []:
         pass
 
-    def getmetadata(self) -> Metadata:
+    def get_metadata(self) -> Metadata:
         pass
 
     def find(self, id: [], complete=True):
@@ -20,20 +20,20 @@ class UnitInterface(SerializerInterface):
         """
         pass
 
-    def findAll(self, id: [], complete=True) -> []:
+    def find_all(self, id: [], complete=True) -> []:
         """
         Returns the elements if it can find the element based on the identifier.
 
         """
         pass
 
-    def getchilds(self) -> []:
+    def get_childs(self) -> []:
         pass
 
-    def getparent(self):
+    def get_parent(self):
         pass
 
-    def getparents(self) -> []:
+    def get_parents(self) -> []:
         pass
 
     def update(self) -> bool:
@@ -41,21 +41,23 @@ class UnitInterface(SerializerInterface):
 
 
 class Unit(UnitInterface):
-    def __init__(self, id: str, parent=None, metadata=Metadata()):
+    def __init__(self, id: str, parent=None, metadata=None):
+        if metadata is None:
+            metadata = Metadata()
         self.id = id
         self.metadata = metadata
         self.parent = parent
 
-    def getid(self) -> str:
+    def get_id(self) -> str:
         return self.id
 
     def identifier(self) -> []:
         if self.parent:
             identifiers = self.parent.identifier()
-            identifiers += [self.getid()]
+            identifiers += [self.get_id()]
         return []
 
-    def getmetadata(self) -> Metadata:
+    def get_metadata(self) -> Metadata:
         return self.metadata
 
     def find(self, id: [], complete=True):
@@ -65,17 +67,17 @@ class Unit(UnitInterface):
             def _find(elem: UnitInterface, index: int):
                 if index:
                     if index < length:
-                        if not id[index] == elem.getid():
+                        if not id[index] == elem.get_id():
                             return None
                 else:
-                    index = id.index(elem.getid())
+                    index = id.index(elem.get_id())
                 if not index:
                     return None
                 if index == length - 1:
                     return elem
                 if index < length - 1:
                     pos = index + 1
-                    for child in elem.getchilds():
+                    for child in elem.get_childs():
                         res = _find(child, pos)
                         if res:
                             return child
@@ -85,7 +87,7 @@ class Unit(UnitInterface):
         else:
             raise NotImplementedError
 
-    def findAll(self, id: [], complete=True) -> []:
+    def find_all(self, id: [], complete=True) -> []:
         result = []
         if complete:
             length = len(id)
@@ -93,10 +95,10 @@ class Unit(UnitInterface):
             def _find(elem: UnitInterface, index: int):
                 if index:
                     if index < length:
-                        if not id[index] == elem.getid():
+                        if not id[index] == elem.get_id():
                             return None
                 else:
-                    index = id.index(elem.getid())
+                    index = id.index(elem.get_id())
                 if not index:
                     return None
                 if index == length - 1:
@@ -104,7 +106,7 @@ class Unit(UnitInterface):
                     return elem
                 if index < length - 1:
                     pos = index + 1
-                    for child in elem.getchilds():
+                    for child in elem.get_childs():
                         _find(child, pos)
                 return None
 
@@ -113,42 +115,42 @@ class Unit(UnitInterface):
             raise NotImplementedError
         return result
 
-    def getchilds(self) -> []:
+    def get_childs(self) -> []:
         return []
 
-    def getparent(self):
+    def get_parent(self):
         return self.parent
 
-    def getparents(self) -> []:
+    def get_parents(self) -> []:
         if self.parent:
-            parents = self.parent.getparents()
+            parents = self.parent.get_parents()
             parents += [self.parent]
             return parents
         return []
 
     def update(self) -> bool:
         changed = False
-        for child in self.getchilds():
+        for child in self.get_childs():
             res = child.update()
             if res:
                 changed = True
         return changed
 
-    def fromDict(self, json: dict) -> bool:
+    def from_dict(self, json: dict) -> bool:
         if "id" in json.keys():
             self.id = json["id"]
 
         if "metadata" in json.keys():
             if not self.metadata:
                 self.metadata = Metadata()
-            self.metadata.fromDict(json["metadata"])
+            self.metadata.from_dict(json["metadata"])
         return True
 
-    def toDict(self) -> dict:
+    def to_dict(self) -> dict:
         res = dict(id=self.id)
 
         if self.metadata:
-            res.update({"metadata": self.metadata.toDict()})
+            res.update({"metadata": self.metadata.to_dict()})
 
         return res
 

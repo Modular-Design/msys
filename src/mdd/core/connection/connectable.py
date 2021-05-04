@@ -1,12 +1,18 @@
 
 class ConnectableInterface:
-    def value(self) -> []:
+    def get_value(self) -> []:
+        pass
+
+    def set_value(self, val: []) -> bool:
         pass
 
     def is_optimized(self) -> bool:
         pass
 
     def set_optimized(self, optimized: bool) -> bool:
+        pass
+
+    def changed(self) -> bool:
         pass
 
     def connect(self, connectable, both=True) -> bool:

@@ -4,4 +4,4 @@ modules = get_modules()
 
 module = modules["math"]()
 
-print(module.toDict())
+print(module.to_dict())

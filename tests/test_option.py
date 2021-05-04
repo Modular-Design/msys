@@ -1,31 +1,55 @@
 import pytest
-from mdd.core import Metadata, Point
+from mdd.core import Option
+
+ldescipt= """
+        Long and
+        multiline description.
+        """
 
 @pytest.mark.core
 @pytest.mark.parametrize(
-    "expected,input",
-    [({}, Metadata()),
-     ({"name": "test"}, Metadata("test")),
-     ({"color": "blue"}, Metadata(color="blue")),
-     ({"pos": {"x": 1.0, "y": 42.0}}, Metadata(pos=Point(1.0, 42.0))),
-     pytest.param({"name": "test", "color": "blue", "pos": {"x": 1.0, "y": 42.0}}, Metadata(), marks=pytest.mark.xfail)],
+    "id",
+    [None, "test_id", 123],
 )
-def test_toDict(input, expected):
-    res = input.toDict()
-    assert res == expected
+@pytest.mark.parametrize(
+    "title",
+    [None, "test_title"],
+)
+@pytest.mark.parametrize(
+    "description",
+    [None, "test_description", ldescipt],
+)
+def test_header_to_dict(id, title, description):
+    opt = Option(id=id, title=title, description=description)
+    result = opt.to_dict()
+
+    def _test_key(key: str, expected):
+        if expected:
+            assert result[key] == expected
+        else:
+            try:
+                result[key]
+                assert False
+            except KeyError:
+                assert True
+
+    _test_key("id", id)
+    _test_key("title", title)
+    _test_key("description", description)
+
 
 @pytest.mark.core
 @pytest.mark.parametrize(
-    "input, expected",
-    [({}, Metadata()),
-     ({"name": "test"}, Metadata("test")),
-     ({"color": "blue"}, Metadata(color="blue")),
-     ({"pos": {"x": 1.0, "y": 42.0}}, Metadata(pos=Point(1.0, 42.0))),
-     pytest.param({"name": "test", "color": "blue", "pos": {"x": 1.0, "y": 42.0}}, Metadata(),
-                  marks=pytest.mark.xfail)],
+    "json, expected",
+    [
+        ({}, Option(id=None)),
+        ({"id": 123}, Option(id=123)),
+        ({"id": "test"}, Option(id="test")),
+        ({"title": "test"}, Option(id=None, title="test")),
+        ({"description": ldescipt}, Option(id=None, description=ldescipt)),
+    ],
 )
-def test_fromDict(input, expected):
-    res = Metadata()
-    res.fromDict(input)
-    assert res.toDict() == expected.toDict()
-
+def test_from_dict(json, expected):
+    res = Option(id=None)
+    res.from_dict(json)
+    assert res.to_dict() == expected.to_dict()

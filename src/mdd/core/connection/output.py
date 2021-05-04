@@ -1,15 +1,25 @@
 from ..unit import UniqueUnit
 from .connectable import ConnectableInterface
 
+
 class Output(UniqueUnit, ConnectableInterface):
     def __init__(self, default_value=[0.0], inputs=[], optimized=False):
         super().__init__()
         self.return_value = default_value
         self.inputs = inputs
         self.optimized = optimized
+        self.__changed = True
 
-    def value(self):
+    def get_value(self):
         return self.return_value
+
+    def set_value(self, val: []) -> bool:
+        if val != self.return_value:
+            self.return_value = val
+            self.__changed = True
+        else:
+            self.__changed = False
+        return True
 
     def is_optimized(self) -> bool:
         return self.optimized
@@ -18,12 +28,15 @@ class Output(UniqueUnit, ConnectableInterface):
         self.optimized = optimized
         return self.is_optimized()
 
+    def changed(self) -> bool:
+        return self.__changed
+
     def connect(self, connectable, both=True) -> bool:
         from .input import Input
         if not isinstance(connectable, Input):
             return False
         for i in self.inputs:
-            if i.getid() == connectable.getid():
+            if i.get_id() == connectable.get_id():
                 return False
         if both:
             if not connectable.connect(self, False):
@@ -32,7 +45,7 @@ class Output(UniqueUnit, ConnectableInterface):
         self.inputs.append(connectable)
         return True
 
-    def connectAll(self, connectables: [], both=True) -> bool:
+    def connect_all(self, connectables: [], both=True) -> bool:
         result = True
         for c in connectables:
             if not self.connect(c, both):
@@ -43,13 +56,16 @@ class Output(UniqueUnit, ConnectableInterface):
         for i in range(len(self.inputs)):
             input = self.inputs[i]
             if connectable:
-                if connectable.getid() != input.getid():
+                if connectable.get_id() != input.get_id():
                     continue
             if both:
                 if not input.disconnect(self, False):
                     return False
             self.inputs.remove(input)
             if connectable:
-                if connectable.getid() == input.getid():
+                if connectable.get_id() == input.get_id():
                     return True
         return True
+
+    def update(self) -> bool:
+        return self.changed()

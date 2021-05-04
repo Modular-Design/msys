@@ -7,10 +7,10 @@ def includes(array: [], elements: []) -> bool:
 
 
 class SerializerInterface:
-    def fromDict(self, json: dict) -> bool:
+    def from_dict(self, json: dict) -> bool:
         """Load class from dictionary."""
         pass
 
-    def toDict(self) -> dict:
+    def to_dict(self) -> dict:
         """Gerenate dict from class."""
         pass

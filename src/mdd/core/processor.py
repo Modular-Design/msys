@@ -6,5 +6,5 @@ class Processor(Module):
         super().__init__(inputs, outputs, options)
         self.modules = modules
 
-    def getchilds(self) -> []:
+    def get_childs(self) -> []:
         return self.inputs + self.outputs + self.modules

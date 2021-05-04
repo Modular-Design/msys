@@ -1,8 +1,10 @@
 from .serializer import SerializerInterface, includes
+import uuid
 
 
 class Option(SerializerInterface):
-    def __init__(self, title="", default_value=[], description="", selection=[], single=True):
+    def __init__(self, id=str(uuid.uuid4()), title="", default_value=[], description="", selection=[], single=True):
+        self.id = id
         self.title = title
         self.description = description
         self.selection = selection
@@ -12,10 +14,16 @@ class Option(SerializerInterface):
         elif selection:
             self.value = [self.selection[0]]
         else:
-            self.value = [""]
+            self.value = []
 
-    def toDict(self) -> dict:
-        res = dict(title=self.title, value=self.value)
+    def to_dict(self) -> dict:
+        res = dict()
+        if self.id:
+            res.update({"id": self.id})
+        if self.title:
+            res.update({"title": self.title})
+        if self.value:
+            res.update({"value": self.value})
         if self.description:
             res.update({"description": self.description})
         if self.selection:
@@ -23,12 +31,16 @@ class Option(SerializerInterface):
 
         return res
 
-    def fromDict(self, json: dict) -> bool:
-        if not includes(json.keys(), ["title", "value"]):
-            return False
+    def from_dict(self, json: dict) -> bool:
+        if "id" in json.keys():
+            self.id = json["id"]
 
-        self.title = json["title"]
-        value = json["value"]
+        if "title" in json.keys():
+            self.title = json["title"]
+
+        value = None
+        if "value" in json.keys():
+            value = json["value"]
 
         if "description" in json.keys():
             self.description = json["description"]
@@ -38,8 +50,7 @@ class Option(SerializerInterface):
             self.single = json["single"]
             if not includes(self.selection, value):
                 return False
-
-        if len(value) != 1 and self.single:
-            return False
-        self.value = json["value"]
+            if len(value) != 1 and self.single:
+                return False
+        self.value = value
         return True

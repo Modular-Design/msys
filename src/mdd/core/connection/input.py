@@ -9,11 +9,21 @@ class Input(UniqueUnit, ConnectableInterface):
         self.static_value = default_value
         self.output = output
         self.optimized = optimized
+        self.__changed = True
 
-    def value(self):
+    def get_value(self):
         if self.output:
-            return self.output.value()
+            return self.output.get_value()
         return self.static_value
+
+    def set_value(self, val: []) -> bool:
+        if self.output:
+            return False
+        else:
+            if self.static_value != val:
+                self.static_value = val
+                self.__changed = True
+            return True
 
     def is_optimized(self) -> bool:
         if self.output:
@@ -23,6 +33,11 @@ class Input(UniqueUnit, ConnectableInterface):
     def set_optimized(self, optimized: bool) -> bool:
         self.optimized = optimized
         return self.is_optimized()
+
+    def changed(self) ->bool:
+        if self.output:
+            return self.output.changed()
+        return self.__changed
 
     def connect(self, connectable, both=True) -> bool:
         from .output import Output
@@ -47,4 +62,9 @@ class Input(UniqueUnit, ConnectableInterface):
                 return False
         self.output = None
         return True
+
+    def update(self) -> bool:
+        result = self.changed()
+        self.__changed = False
+        return result
 
