@@ -1,10 +1,11 @@
 from .unit import UniqueUnit
+from .serializer import SerializableList
 
 
 class Module(UniqueUnit):
-    def __init__(self, inputs=[], outputs=[], options=[]):
-        self.inputs = inputs
-        self.outputs = outputs
+    def __init__(self, inputs=[], inputs_generator=None, outputs=[], outputs_generator=None, options=[]):
+        self.inputs = SerializableList(inputs, inputs_generator)
+        self.outputs = SerializableList(outputs, outputs_generator)
         self.options = options
         super().__init__()
 
@@ -18,24 +19,19 @@ class Module(UniqueUnit):
             options.append(o.to_dict())
         res["options"] = options
 
-        inputs = []
-        for i in self.inputs:
-            inputs.append(i.to_dict())
-        res["inputs"] = inputs
+        res["inputs"] = self.inputs.to_dict()
 
-        outputs = []
-        for o in self.outputs:
-            outputs.append(o.to_dict())
-        res["outputs"] = outputs
+        res["outputs"] = self.outputs.to_dict()
         return res
 
     def from_dict(self, json: dict) -> bool:
         if not super().from_dict(json):
             return False
 
-        def _from_dict(key, lists):
+        def _from_dict(key, lists, changeable=False):
             connectables = json[key]
             for new_c in connectables:
+                found = False
                 if not "id" in new_c:
                     break
                 for old_c in lists:
@@ -47,10 +43,10 @@ class Module(UniqueUnit):
             _from_dict("options", self.options)
 
         if "inputs" in json.keys():
-            _from_dict("inputs", self.inputs)
+            self.inputs.from_dict(json["inputs"])
 
         if "outputs" in json.keys():
-            _from_dict("outputs", self.outputs)
+            self.outputs.from_dict(json["outputs"])
 
     def process(self) -> None:
         """
@@ -60,17 +56,10 @@ class Module(UniqueUnit):
         pass
 
     def update(self) -> bool:
-        changed = False
-        for ins in self.inputs:
-            if ins.update():
-                changed = True
+        changed = self.inputs.update()
 
         if changed:
             self.process()
 
-        for outs in self.outputs:
-            if outs.update():
-                changed = True
+        changed = self.outputs.update()
         return changed
-
-

@@ -23,7 +23,13 @@ class Math(Module):
                                         """,
                                 default_value="2")
 
+        def _input_generator(i:int):
+            input = Input()
+            input.metadata.name = "in" + str(i)
+            return input
+
         super().__init__(inputs=[Input(), Input()],
+                         inputs_generator=_input_generator,
                          outputs=[Output()],
                          options=[self.__opt_expr,
                                   self.__opt_ins,

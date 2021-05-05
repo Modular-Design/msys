@@ -43,6 +43,7 @@ Legend:
 | Plugin system                        | ✅     |
 | Math Module                          | ✅     |
 | Processor                            | 🔜     |
+| HTML Module                          | 🟦     |
 | SQL Module                           | 🟦     |
 
 
