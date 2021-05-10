@@ -18,10 +18,11 @@ class Point(SerializerInterface):
 
 
 class Metadata(SerializerInterface):
-    def __init__(self, name="", color="", pos=None):
+    def __init__(self, name="", color="", pos=None, inverted=False):
         self.name = name
         self.color = color
         self.pos = pos
+        self.inverted = inverted
 
     def from_dict(self, json: dict) -> bool:
         if "name" in json.keys():
@@ -35,6 +36,9 @@ class Metadata(SerializerInterface):
                 self.pos = Point()
             self.pos.from_dict(json["pos"])
 
+        if "inverted" in json.keys():
+            self.inverted = json["inverted"]
+
         return True
 
     def to_dict(self) -> dict:
@@ -45,4 +49,6 @@ class Metadata(SerializerInterface):
             res.update({"color": self.color})
         if self.pos:
             res.update({"pos": self.pos.to_dict()})
+        if self.inverted:
+            res.update({"inverted": self.inverted})
         return res
