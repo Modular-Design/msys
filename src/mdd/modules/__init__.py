@@ -25,7 +25,11 @@ def get_modules():
     # """
 
     # search in entry points
-    from importlib.metadata import entry_points
+    import sys
+    if sys.version_info < (3, 10):
+        from importlib_metadata import entry_points
+    else:
+        from importlib.metadata import entry_points
 
     discovered_modules = entry_points()['mdd.modules']
     print(discovered_modules)
