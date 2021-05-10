@@ -3,7 +3,7 @@ from .module import Module
 
 class Processor(Module):
     def __init__(self, inputs=[], outputs=[], options=[], modules=[]):
-        super().__init__(inputs, outputs, options)
+        super().__init__(inputs=inputs, outputs=outputs, options=options)
         self.modules = modules
 
 

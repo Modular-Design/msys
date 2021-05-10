@@ -15,6 +15,9 @@ class ConnectableInterface:
     def is_changed(self) -> bool:
         pass
 
+    def is_connected(self) -> bool:
+        pass
+
     def connect(self, connectable, both=True) -> bool:
         """Try to connect to connectable."""
         pass

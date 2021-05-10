@@ -1,11 +1,11 @@
 from .unit import UniqueUnit
-from .serializer import SerializableList
+from .serializer import ConnectableList
 
 
 class Module(UniqueUnit):
     def __init__(self, inputs=[], inputs_generator=None, outputs=[], outputs_generator=None, options=[]):
-        self.inputs = SerializableList(inputs, inputs_generator)
-        self.outputs = SerializableList(outputs, outputs_generator)
+        self.inputs = ConnectableList(inputs, inputs_generator)
+        self.outputs = ConnectableList(outputs, outputs_generator)
         self.options = options
         super().__init__()
 

@@ -68,3 +68,36 @@ class SerializableList(SerializerInterface):
     def __len__(self):
         return len(self.elems)
 
+
+
+class ConnectableList(SerializableList):
+    def __init__(self, elems: [], generator=None):
+        self.connections = 0
+        self.length = 0
+        self.changed = 0
+        super().__init__(elems, generator)
+        self.update_numbers()
+
+    def get_no_connected(self) -> int:
+        return self.connections
+
+    def get_no_elems(self) -> int:
+        return self.length
+
+    def get_no_changed(self) -> int:
+        return self.changed
+
+    def update_numbers(self) -> bool:
+        self.length = len(self.elems)
+        self.connections = 0
+        self.changed = 0
+        for e in self.elems:
+            if e.is_connected():
+                self.connections += 1
+            if e.is_changed():
+                self.changed += 1
+
+    def update(self) -> bool:
+        res = super().update()
+        self.update_numbers()
+        return res

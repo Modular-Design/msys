@@ -28,6 +28,11 @@ class Output(UniqueUnit, ConnectableInterface):
     def is_changed(self) -> bool:
         return self.type.is_changed()
 
+    def is_connected(self) -> bool:
+        if self.inputs:
+            return True
+        return False
+
     def connect(self, connectable, both=True) -> bool:
         from .input import Input
         if not isinstance(connectable, Input):
@@ -50,6 +55,8 @@ class Output(UniqueUnit, ConnectableInterface):
         return result
 
     def disconnect(self, connectable=None, both=True) -> bool:
+        if not self.inputs:
+            return False
         for i in range(len(self.inputs)):
             input = self.inputs[i]
             if connectable:

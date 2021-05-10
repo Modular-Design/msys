@@ -37,6 +37,11 @@ class Input(UniqueUnit, ConnectableInterface):
             return self.output.is_changed()
         return self.types[self.type_id].is_changed()
 
+    def is_connected(self) -> bool:
+        if self.output:
+            return True
+        return False
+
     def connect(self, connectable, both=True) -> bool:
         from .output import Output
         if not isinstance(connectable, Output):
