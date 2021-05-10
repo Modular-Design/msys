@@ -1,25 +1,22 @@
 from ..unit import UniqueUnit
 from .connectable import ConnectableInterface
+from .type import TypeInterface
 
 
 class Output(UniqueUnit, ConnectableInterface):
-    def __init__(self, default_value=[0.0], inputs=[], optimized=False):
+    def __init__(self, type, inputs=None, optimized=False):
         super().__init__()
-        self.return_value = default_value
+        self.type = type
         self.inputs = inputs
+        if self.inputs is None:
+            self.inputs = []
         self.optimized = optimized
-        self.__changed = True
 
     def get_value(self):
-        return self.return_value
+        return self.type.get_value()
 
-    def set_value(self, val: []) -> bool:
-        if val != self.return_value:
-            self.return_value = val
-            self.__changed = True
-        else:
-            self.__changed = False
-        return True
+    def set_value(self, value) -> bool:
+        return self.type.set_value(value)
 
     def is_optimized(self) -> bool:
         return self.optimized
@@ -28,8 +25,8 @@ class Output(UniqueUnit, ConnectableInterface):
         self.optimized = optimized
         return self.is_optimized()
 
-    def changed(self) -> bool:
-        return self.__changed
+    def is_changed(self) -> bool:
+        return self.type.is_changed()
 
     def connect(self, connectable, both=True) -> bool:
         from .input import Input
@@ -68,4 +65,4 @@ class Output(UniqueUnit, ConnectableInterface):
         return True
 
     def update(self) -> bool:
-        return self.changed()
+        return self.is_changed()

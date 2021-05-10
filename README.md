@@ -7,12 +7,14 @@ modular design and development
 till `pip 21.3`:
 ```
 pip install --use-feature=in-tree-build .
-pytest
 ```
 `pip 21.3+`:
 ```
 pip install .
-pytest
+```
+
+```
+coverage run --source=src -m pytest
 ```
 
 ## Capabilities
@@ -30,6 +32,7 @@ Legend:
 
 | Capability                           | Status |
 | ------------------------------------ | ------ |
+| Types                                | ✅     |
 | Inputs and Outputs                   | ✅     |
 | Module                               | ✅     |
 | Processor                            | ✅     |
@@ -48,6 +51,12 @@ Legend:
 | HTML Module                          | 🟦     |
 | SQL Module                           | 🟦     |
 
+### Types
+
+| Capability                           | Status |
+| ------------------------------------ | ------ |
+| Vector                               | ✅     |
+| File                                 | 🟦     |
 
 ### Optimizers
 

@@ -1,5 +1,5 @@
-from ...core import Processor, Option
-from ...core.connection import Input, Output
+from mdd.core import Processor, Option
+from mdd.core.connection import Input, Output
 import time
 import math
 

@@ -1,29 +1,27 @@
 from ..unit import UniqueUnit
 from .connectable import ConnectableInterface
+from .type import TypeInterface
 
 
 class Input(UniqueUnit, ConnectableInterface):
-    def __init__(self, default_value=[0.0], output=None, optimized=False, generator=None):
+    def __init__(self, types: list, output=None, optimized=False, generator=None):
         super().__init__()
         self.generator = generator
-        self.static_value = default_value
+        self.types = types
+        self.type_id = 0
         self.output = output
         self.optimized = optimized
-        self.__changed = True
 
     def get_value(self):
         if self.output:
             return self.output.get_value()
-        return self.static_value
+        return self.types[self.type_id].get_value()
 
-    def set_value(self, val: []) -> bool:
+    def set_value(self, value) -> bool:
         if self.output:
             return False
         else:
-            if self.static_value != val:
-                self.static_value = val
-                self.__changed = True
-            return True
+            return self.types[self.type_id].set_value(value)
 
     def is_optimized(self) -> bool:
         if self.output:
@@ -34,10 +32,10 @@ class Input(UniqueUnit, ConnectableInterface):
         self.optimized = optimized
         return self.is_optimized()
 
-    def changed(self) ->bool:
+    def is_changed(self) -> bool:
         if self.output:
-            return self.output.changed()
-        return self.__changed
+            return self.output.is_changed()
+        return self.types[self.type_id].is_changed()
 
     def connect(self, connectable, both=True) -> bool:
         from .output import Output
@@ -46,10 +44,13 @@ class Input(UniqueUnit, ConnectableInterface):
         if self.output:
             if not self.disconnect():
                 return False
+        i = TypeInterface.is_compatible(connectable.type, self.types)
+        if i < 0:
+            return False
         if both:
             if not connectable.connect(self, False):
                 return False
-
+        self.type_id = i
         self.output = connectable
         return True
 
@@ -64,7 +65,6 @@ class Input(UniqueUnit, ConnectableInterface):
         return True
 
     def update(self) -> bool:
-        result = self.changed()
-        self.__changed = False
+        result = self.is_changed()
         return result
 

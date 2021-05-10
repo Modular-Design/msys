@@ -22,4 +22,4 @@ def test_update_from_dict(json, vals, expected):
         math.inputs[i].set_value(vals[i])
     math.update()
     res = math.outputs[0].get_value()
-    assert res == expected
+    assert list(res) == list(expected)

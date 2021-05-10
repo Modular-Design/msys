@@ -3,7 +3,7 @@ class ConnectableInterface:
     def get_value(self) -> []:
         pass
 
-    def set_value(self, val: []) -> bool:
+    def set_value(self, value) -> bool:
         pass
 
     def is_optimized(self) -> bool:
@@ -12,7 +12,7 @@ class ConnectableInterface:
     def set_optimized(self, optimized: bool) -> bool:
         pass
 
-    def changed(self) -> bool:
+    def is_changed(self) -> bool:
         pass
 
     def connect(self, connectable, both=True) -> bool:

@@ -1,11 +1,12 @@
 import pytest
-from mdd.core.connection import Input, Output
+from mdd.core.connection import Input, Output, StandardType
 
 
 @pytest.mark.core
+@pytest.mark.connection
 def test_connect_input_output():
-    in0 = Input(default_value=[12.90, 14])
-    output = Output(default_value=[1, 3])
+    in0 = Input([StandardType([12.90, 14])])
+    output = Output(StandardType([1, 3]))
 
     def test_disconect(ins, outs):
         outs.disconnect(ins)

@@ -1,5 +1,5 @@
-from ...core import Module
-from ...core.connection import Input, Output
+from mdd.core import Module
+from mdd.core.connection import Input, Output
 
 
 class SQL(Module):
