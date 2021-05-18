@@ -7,6 +7,7 @@
 ![workflow](https://github.com/willi-z/msys/actions/workflows/ci.yml/badge.svg?branch=main)
 [![codecov](https://codecov.io/gh/willi-z/msys/branch/main/graph/badge.svg?token=CG4DIOZZ6C)](https://codecov.io/gh/willi-z/msys)
 
+See the [Documentation](https://msys-docs.readthedocs.io/en/latest/) form more information.
 
 ## Testing
 till `pip 21.3`:
