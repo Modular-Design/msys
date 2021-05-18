@@ -1,5 +1,5 @@
 import pytest
-from mdd.core import Metadata, Point
+from msys.core import Metadata, Point
 
 
 @pytest.mark.core

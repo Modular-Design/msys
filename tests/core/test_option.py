@@ -1,5 +1,5 @@
 import pytest
-from mdd.core import Option
+from msys.core import Option
 
 ldescipt= """
         Long and

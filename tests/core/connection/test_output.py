@@ -1,5 +1,5 @@
 import pytest
-from mdd.core.connection import Output, StandardType
+from msys.core.connection import Output, StandardType
 
 
 @pytest.mark.core

@@ -1,6 +1,6 @@
-from mdd.core import Processor, Option
-from mdd.core.connection import Input, Output
-from mdd.types.vector import VectorType
+from msys.core import Processor, Option
+from msys.core.connection import Input, Output
+from msys.types.vector import VectorType
 import time
 import math
 

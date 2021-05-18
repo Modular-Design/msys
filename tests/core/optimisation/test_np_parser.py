@@ -1,5 +1,5 @@
 import pytest
-from mdd.core.optimisation import NumericStringParser
+from msys.core.optimisation import NumericStringParser
 import numpy as np
 
 

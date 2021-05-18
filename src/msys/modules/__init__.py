@@ -17,11 +17,11 @@ def get_modules():
         # the name.
         return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-    import mdd.modules
+    import msys.modules
     discovered_plugins = {
         name: importlib.import_module(name)
         for finder, name, ispkg
-        in iter_namespace(mdd.modules)
+        in iter_namespace(msys.modules)
     }
     # """
 
@@ -32,7 +32,7 @@ def get_modules():
     else:
         from importlib.metadata import entry_points
 
-    discovered_modules = entry_points()['mdd.modules']
+    discovered_modules = entry_points()['msys.modules']
     print(discovered_modules)
 
 

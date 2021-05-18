@@ -1,5 +1,5 @@
 import pytest
-from mdd.modules import Math
+from msys.modules import Math
 
 
 @pytest.mark.modules

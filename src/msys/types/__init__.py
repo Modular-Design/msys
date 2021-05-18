@@ -8,7 +8,7 @@ def get_types():
     else:
         from importlib.metadata import entry_points
 
-    discovered_types = entry_points()['mdd.types']
+    discovered_types = entry_points()['msys.types']
 
     for type in discovered_types:
         types[type.name] = type.load()

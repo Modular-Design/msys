@@ -1,6 +1,6 @@
 import pytest
-from mdd.core.connection import StandardType, TypeInterface
-from mdd.types import get_types
+from msys.core.connection import StandardType, TypeInterface
+from msys.types import get_types
 
 
 @pytest.mark.core

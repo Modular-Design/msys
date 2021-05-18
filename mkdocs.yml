@@ -1,5 +1,5 @@
-site_name: Reporting
-site_url: http://pages.gitlab/reporting
+site_name: MSYS
+site_url: https://msys-docs.readthedocs.io/en/latest/?badge=latest
 
 theme:
   name: material
@@ -25,8 +25,8 @@ theme:
   favicon: img/favicon.png
   language: en
 
-repo_url: http://10.7.2.131:1080/reporting/reporting
-edit_uri: http://10.7.2.131:1080/reporting/reporting/-/tree/master/docs
+repo_url: https://github.com/willi-z/msys
+edit_uri: https://github.com/willi-z/msys/tree/main/docs
 docs_dir: docs
 site_dir: build/wiki
 
@@ -38,10 +38,7 @@ plugins:
 nav:
     - Introduction:
         - Home: index.md
-        - Getting Started: introduction/getting-started.md
-    - Installation:
-        - Linux: installation/linux.md
-        - Windows: installation/windows.md
+        - Getting Started: getting-started.md
     - Tutorials:
         - Creating a Report: tutorials/report.md
         - Install an Add-On: tutorials/add-on.md
@@ -53,7 +50,7 @@ nav:
         - Write Types: how-to/type.md
         - Write Recepes: how-to/recepe.md
     - References:
-        - Implementing the MDD-System: references/mdd.md
+        - Implementing the MDD-System: references/msys.md
         - Pluginsystem: references/plugins.md
         - Source-Code: references/source.md
     - Development:

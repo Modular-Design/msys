@@ -1,8 +1,11 @@
-# MDD
->modular design and development
+# MSYS
+> A Framework for modular Systems
 
-![workflow](https://github.com/willi-z/mdd/actions/workflows/ci.yml/badge.svg?branch=main)
-[![codecov](https://codecov.io/gh/willi-z/mdd/branch/main/graph/badge.svg?token=CG4DIOZZ6C)](https://codecov.io/gh/willi-z/mdd)
+[![pip](https://img.shields.io/pypi/v/msys.svg?maxAge=3600)](https://pypi.org/project/msys/)
+![workflow](https://github.com/willi-z/msys/actions/workflows/ci.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/willi-z/msys/branch/main/graph/badge.svg?token=CG4DIOZZ6C)](https://codecov.io/gh/willi-z/msys)
+[![Documentation Status](https://readthedocs.org/projects/msys-docs/badge/?version=latest)](https://msys-docs.readthedocs.io/en/latest/?badge=latest)
+
 ## Testing
 till `pip 21.3`:
 ```

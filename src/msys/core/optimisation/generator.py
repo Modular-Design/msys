@@ -1,4 +1,4 @@
-from src.mdd.core.serializer import SerializerInterface
+from src.msys.core.serializer import SerializerInterface
 
 
 class Generator(SerializerInterface):

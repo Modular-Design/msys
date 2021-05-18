@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="MDD",
+    name="msys",
     install_requires=[
         "pyparsing ~= 2.4",
         "numpy~=1.20",

@@ -1,5 +1,5 @@
 import pytest
-from mdd.modules import DefaultProcessor, Math
+from msys.modules import DefaultProcessor, Math
 
 
 @pytest.mark.modules

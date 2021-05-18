@@ -1,5 +1,5 @@
 import pytest
-from mdd.modules import *
+from msys.modules import *
 
 
 @pytest.mark.core
