@@ -1,0 +1,63 @@
+site_name: Reporting
+site_url: http://pages.gitlab/reporting
+
+theme:
+  name: material
+  palette:
+  - scheme: default
+    primary: teal
+    accent: amber
+    toggle:
+      icon: material/lightbulb-outline
+      name: Switch to light mode
+  - scheme: slate
+    primary: teal
+    accent: amber
+    toggle:
+      icon: material/lightbulb
+      name: Switch to dark mode
+  features:
+  - search.suggest
+  - search.highlight
+  icon:
+    repo: fontawesome/brands/github-alt
+  logo: img/logo.png
+  favicon: img/favicon.png
+  language: en
+
+repo_url: http://10.7.2.131:1080/reporting/reporting
+edit_uri: http://10.7.2.131:1080/reporting/reporting/-/tree/master/docs
+docs_dir: docs
+site_dir: build/wiki
+
+
+plugins:
+    - search
+    - mkdocstrings
+
+nav:
+    - Introduction:
+        - Home: index.md
+        - Getting Started: introduction/getting-started.md
+    - Installation:
+        - Linux: installation/linux.md
+        - Windows: installation/windows.md
+    - Tutorials:
+        - Creating a Report: tutorials/report.md
+        - Install an Add-On: tutorials/add-on.md
+    - Explanations:
+        - Reporting: explanations/reporting.md
+        - Recepies: explanations/recepe.md
+        - Types : explanations/types.md
+    - How-To:
+        - Write Types: how-to/type.md
+        - Write Recepes: how-to/recepe.md
+    - References:
+        - Implementing the MDD-System: references/mdd.md
+        - Pluginsystem: references/plugins.md
+        - Source-Code: references/source.md
+    - Development:
+          - Writing Tests: development/tests.md
+          - Writing Documentation: development/documentation.md
+    - About: about.md
+
