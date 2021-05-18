@@ -4,4 +4,4 @@ https://chrieke.medium.com/documenting-a-python-package-with-code-reference-via-
 
 ## The Core-Module
 
-::: mdd.core
+::: msys.core

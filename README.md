@@ -2,9 +2,11 @@
 > A Framework for modular Systems
 
 [![pip](https://img.shields.io/pypi/v/msys.svg?maxAge=3600)](https://pypi.org/project/msys/)
+[![Documentation Status](https://readthedocs.org/projects/msys-docs/badge/?version=latest)](https://msys-docs.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/363596972.svg)](https://zenodo.org/badge/latestdoi/363596972)
 ![workflow](https://github.com/willi-z/msys/actions/workflows/ci.yml/badge.svg?branch=main)
 [![codecov](https://codecov.io/gh/willi-z/msys/branch/main/graph/badge.svg?token=CG4DIOZZ6C)](https://codecov.io/gh/willi-z/msys)
-[![Documentation Status](https://readthedocs.org/projects/msys-docs/badge/?version=latest)](https://msys-docs.readthedocs.io/en/latest/?badge=latest)
+
 
 ## Testing
 till `pip 21.3`:
