@@ -33,7 +33,8 @@ def test_create(value):
 )
 def test_set_value( value, correct):
     out = Output(type=StandardType())
-    assert (success := out.set_value(value)) == correct
+    success = out.set_value(value)
+    assert success == correct
     if success:
         assert out.get_value() == value
         assert out.is_changed()

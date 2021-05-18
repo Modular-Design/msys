@@ -47,7 +47,8 @@ def test_set_value(value):
 )
 def test_set_value(value, correct):
     ins = Input(type=StandardType())
-    assert (success := ins.set_value(value)) == correct
+    success = ins.set_value(value)
+    assert success == correct
     if success:
         assert ins.get_value() == value
         assert ins.is_changed()
