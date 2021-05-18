@@ -24,16 +24,10 @@ class TypeInterface:
     def is_connectable(self, other) -> bool:
         pass
 
-    @staticmethod
-    def is_compatible(output_type, input_types: list) -> int:
-        for i, t in enumerate(input_types):
-            if t.is_connectable(output_type):
-                return i
-        return -1
-
 
 class StandardType(TypeInterface):
-    def __init__(self, default_value):
+    def __init__(self, default_value="", type_name="standard"):
+        self.type_name = type_name
         self.changed = True
         self.value = default_value
 
@@ -54,5 +48,18 @@ class StandardType(TypeInterface):
 
     def is_connectable(self, other) -> bool:
         if not issubclass(other.__class__, self.__class__):
+            return False
+        return True
+
+    def to_dict(self) -> dict:
+        return {
+            "type": self.type_name,
+            "value": self.value,
+        }
+
+    def from_dict(self, json: dict) -> bool:
+        try:
+            self.value = json["value"]
+        except Exception:
             return False
         return True

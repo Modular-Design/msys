@@ -40,19 +40,21 @@ nav:
         - Home: index.md
         - Getting Started: getting-started.md
     - Tutorials:
-        - Creating a Report: tutorials/report.md
+        - Building a Process: tutorials/processing.md
         - Install an Add-On: tutorials/add-on.md
     - Explanations:
-        - Reporting: explanations/reporting.md
-        - Recepies: explanations/recepe.md
+        - Processing: explanations/processing.md
+        - Modules: explanations/module.md
         - Types : explanations/types.md
     - How-To:
-        - Write Types: how-to/type.md
-        - Write Recepes: how-to/recepe.md
+        - Write Basic Extensions: how-to/extensions.md
+        - Add new Types: how-to/type.md
+        - Add new Modules: how-to/module.md
+        - Add new Funktionalities: how-to/classes.md
     - References:
-        - Implementing the MDD-System: references/msys.md
         - Pluginsystem: references/plugins.md
         - Source-Code: references/source.md
+        - Implementations: references/projects.md
     - Development:
           - Writing Tests: development/tests.md
           - Writing Documentation: development/documentation.md

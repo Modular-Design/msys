@@ -1,16 +1,32 @@
 from .unit import UniqueUnit
 from .serializer import ConnectableList
-
+from .unit import Unit
 
 class Module(UniqueUnit):
-    def __init__(self, inputs=[], inputs_generator=None, outputs=[], outputs_generator=None, options=[]):
+    def __init__(self, inputs=[], outputs=[], options=[], sub_modules=[], inputs_generator=None, outputs_generator=None):
         self.inputs = ConnectableList(inputs, inputs_generator)
         self.outputs = ConnectableList(outputs, outputs_generator)
         self.options = options
+        self.modules = []
+        for module in sub_modules:
+            self.add_module(module)
         super().__init__()
 
+    def get_inputs(self):
+        return self.inputs
+
+    def get_outputs(self):
+        return self.outputs
+
+    def get_options(self):
+        return self.options
+
     def get_childs(self) -> []:
-        return self.inputs + self.outputs
+        return self.inputs[:] + self.outputs[:] + self.modules
+
+    def add_module(self, module: Unit):
+        module.parent = self
+        self.modules.append(module)
 
     def to_dict(self) -> dict:
         res = super().to_dict()
@@ -25,8 +41,7 @@ class Module(UniqueUnit):
         return res
 
     def from_dict(self, json: dict) -> bool:
-        if not super().from_dict(json):
-            return False
+        found = super().from_dict(json)
 
         def _from_dict(key, lists, changeable=False):
             connectables = json[key]
@@ -41,12 +56,17 @@ class Module(UniqueUnit):
 
         if "options" in json.keys():
             _from_dict("options", self.options)
+            found = True
 
         if "inputs" in json.keys():
             self.inputs.from_dict(json["inputs"])
+            found = True
 
         if "outputs" in json.keys():
             self.outputs.from_dict(json["outputs"])
+            found = True
+
+        return found
 
     def process(self) -> None:
         """

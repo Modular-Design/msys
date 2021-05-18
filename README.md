@@ -1,7 +1,7 @@
 # MSYS
 > A Framework for modular Systems
 
-[![pip](https://img.shields.io/pypi/v/msys.svg?maxAge=3600)](https://pypi.org/project/msys/)
+[![pip](https://img.shields.io/pypi/v/msys.svg)](https://pypi.org/project/msys/)
 [![Documentation Status](https://readthedocs.org/projects/msys-docs/badge/?version=latest)](https://msys-docs.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/363596972.svg)](https://zenodo.org/badge/latestdoi/363596972)
 ![workflow](https://github.com/willi-z/msys/actions/workflows/ci.yml/badge.svg?branch=main)
@@ -20,7 +20,7 @@ pip install -e .
 ```
 
 ```
-coverage run --source=src -m pytest
+coverage run --source=src -m pytest && coverage report -m
 ```
 
 ## Capabilities
@@ -41,34 +41,8 @@ Legend:
 | Types                                | ✅     |
 | Inputs and Outputs                   | ✅     |
 | Module                               | ✅     |
-| Processor                            | ✅     |
-| Expression Parser                    | ✅     |
-| Optimizer                            | 🔜     |
+| Extensions                           | 🔜     |
 | API                                  | 🔜     |
-
-
-### Modules
-
-| Capability                           | Status |
-| ------------------------------------ | ------ |
-| Plugin system                        | ✅     |
-| Math Module                          | ✅     |
-| Processor                            | 🔜     |
-| HTML Module                          | 🟦     |
-| SQL Module                           | 🟦     |
-
-### Types
-
-| Capability                           | Status |
-| ------------------------------------ | ------ |
-| Vector                               | ✅     |
-| File                                 | 🟦     |
-
-### Optimizers
-
-| Capability                           | Status |
-| ------------------------------------ | ------ |
-| Evolutionary Optimisation            | 🟦     |
 
 ### Server
 
@@ -76,14 +50,3 @@ Legend:
 | ------------------------------------ | ------ |
 | create, save and load                | 🟦     |
 | change                               | 🟦     |
-
-### Documentation
-
-| Capability                           | Status |
-| ------------------------------------ | ------ |
-| Installation                         | 🟦     |
-| Configuration                        | 🟦     |
-| Core                                 | 🟦     |
-| Modules                              | 🟦     |
-| Optimisation                         | 🟦     |
-| Server and API                       | 🟦     |

@@ -10,11 +10,11 @@ class Input(UniqueUnit, ConnectableInterface):
        On Input can only be connected to one Output but one Output can have multiple connected Inputs.
 
        Attributes:
-           types (list): a list of types with which the input tries to parse the type of the output
+           types (TypeInterface): type with which the input tries to parse the type of the output
            type_id (int): the index of the type, with which a successfull connection was made
            connection (Output): the connected output
     """
-    def __init__(self, types: list, output=None, optimized=False, generator=None):
+    def __init__(self, type: TypeInterface, output=None):
         """Input Constructor
 
         Note:
@@ -24,11 +24,8 @@ class Input(UniqueUnit, ConnectableInterface):
             connection (:obj:`Output`, optional): Description of `param2`.
         """
         super().__init__()
-        self.generator = generator
-        self.types = types
-        self.type_id = 0
+        self.type = type
         self.output = output
-        self.optimized = optimized
 
     def get_value(self):
         """
@@ -39,7 +36,7 @@ class Input(UniqueUnit, ConnectableInterface):
         """
         if self.output:
             return self.output.get_value()
-        return self.types[self.type_id].get_value()
+        return self.type.get_value()
 
     def set_value(self, value) -> bool:
         """
@@ -53,28 +50,19 @@ class Input(UniqueUnit, ConnectableInterface):
         if self.output:
             return False
         else:
-            return self.types[self.type_id].set_value(value)
-
-    def is_optimized(self) -> bool:
-        if self.output:
-            return False
-        return self.optimized
-
-    def set_optimized(self, optimized: bool) -> bool:
-        self.optimized = optimized
-        return self.is_optimized()
+            return self.type.set_value(value)
 
     def is_changed(self) -> bool:
         if self.output:
             return self.output.is_changed()
-        return self.types[self.type_id].is_changed()
+        return self.type.is_changed()
 
     def is_connected(self) -> bool:
         if self.output:
             return True
         return False
 
-    def connect(self, connectable, both=True) -> bool:
+    def connect(self, connectable: ConnectableInterface, both=True) -> bool:
         """Use to connect to Output.
         One Input can only connect to one Output,
         but one Output can be connected to multiple Inputs.
@@ -82,9 +70,7 @@ class Input(UniqueUnit, ConnectableInterface):
 
         Args:
             connectable (Connectable): accepts all kind of objects, but only outputs have a chance to succeed.
-            both (:obj:`bool`, optional): bool, optional
-            is used if both Input and Output should know from each other.
-            Default ``True``.
+            both (:obj:`bool`, optional): is used if both Input and Output should know from each other. Default ``True``.
 
         Returns:
             bool: True if successful, False otherwise.
@@ -95,19 +81,17 @@ class Input(UniqueUnit, ConnectableInterface):
         if self.output:
             if not self.disconnect():
                 return False
-        i = TypeInterface.is_compatible(connectable.type, self.types)
-        if i < 0:
+        if not self.type.is_connectable(connectable.type):
             return False
         if both:
             if not connectable.connect(self, False):
                 return False
-        self.type_id = i
         self.output = connectable
         return True
 
     def disconnect(self, connectable=None, both=True) -> bool:
         if not self.output:
-            return False
+            return True
 
         if both:
             if not self.output.disconnect(self, False):

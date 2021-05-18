@@ -1,6 +1,6 @@
 import pytest
 from msys.core.connection import StandardType, TypeInterface
-from msys.types import get_types
+from msys.registration import get_types
 
 
 @pytest.mark.core
@@ -14,9 +14,19 @@ from msys.types import get_types
         ("test",),
     ],
 )
-def test_create(value):
-    t = StandardType(value)
+@pytest.mark.parametrize(
+    "name",
+    [
+        ("",),
+        (None,),
+        ("standard",),
+        ("None",),
+    ],
+)
+def test_create(name, value):
+    t = StandardType(value, name)
     assert t.get_value() == value
+    assert t.type_name == name
 
 
 @pytest.mark.core
@@ -48,16 +58,3 @@ def test_is_connectable(obj, correct):
 def test_create(value0, value1, same):
     t = StandardType(value0)
     assert t.is_same(value1) == same
-
-
-@pytest.mark.core
-@pytest.mark.parametrize(
-    "key, exists",
-    [
-        ("vector", True),
-        ("dont exist", False),
-    ],
-)
-def test_find_types(key, exists):
-    types = get_types()
-    assert (key in types.keys()) == exists

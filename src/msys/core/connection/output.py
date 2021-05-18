@@ -4,26 +4,18 @@ from .type import TypeInterface
 
 
 class Output(UniqueUnit, ConnectableInterface):
-    def __init__(self, type, inputs=None, optimized=False):
+    def __init__(self, type, inputs=None):
         super().__init__()
         self.type = type
         self.inputs = inputs
         if self.inputs is None:
             self.inputs = []
-        self.optimized = optimized
 
     def get_value(self):
         return self.type.get_value()
 
     def set_value(self, value) -> bool:
         return self.type.set_value(value)
-
-    def is_optimized(self) -> bool:
-        return self.optimized
-
-    def set_optimized(self, optimized: bool) -> bool:
-        self.optimized = optimized
-        return self.is_optimized()
 
     def is_changed(self) -> bool:
         return self.type.is_changed()
@@ -33,7 +25,7 @@ class Output(UniqueUnit, ConnectableInterface):
             return True
         return False
 
-    def connect(self, connectable, both=True) -> bool:
+    def connect(self, connectable: ConnectableInterface, both=True) -> bool:
         from .input import Input
         if not isinstance(connectable, Input):
             return False
@@ -56,7 +48,7 @@ class Output(UniqueUnit, ConnectableInterface):
 
     def disconnect(self, connectable=None, both=True) -> bool:
         if not self.inputs:
-            return False
+            return True
         for i in range(len(self.inputs)):
             input = self.inputs[i]
             if connectable:

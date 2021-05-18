@@ -5,7 +5,7 @@ from msys.core.connection import Input, Output, StandardType
 @pytest.mark.core
 @pytest.mark.connection
 def test_connect_input_output():
-    in0 = Input([StandardType([12.90, 14])])
+    in0 = Input(StandardType([12.90, 14]))
     output = Output(StandardType([1, 3]))
 
     def test_disconect(ins, outs):

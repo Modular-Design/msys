@@ -52,10 +52,10 @@ class Unit(UnitInterface):
         return self.id
 
     def identifier(self) -> []:
+        identifiers = [self.get_id()]
         if self.parent:
-            identifiers = self.parent.identifier()
-            identifiers += [self.get_id()]
-        return []
+            identifiers += self.parent.identifier()
+        return identifiers
 
     def get_metadata(self) -> Metadata:
         return self.metadata
@@ -65,13 +65,15 @@ class Unit(UnitInterface):
             length = len(id)
 
             def _find(elem: UnitInterface, index: int):
-                if index:
+                tmp = elem.identifier()
+                if index >= 0:
                     if index < length:
                         if not id[index] == elem.get_id():
                             return None
                 else:
-                    index = id.index(elem.get_id())
-                if not index:
+                    if elem.get_id() in id:
+                        index = id.index(elem.get_id())
+                if index < 0:
                     return None
                 if index == length - 1:
                     return elem
@@ -80,7 +82,7 @@ class Unit(UnitInterface):
                     for child in elem.get_childs():
                         res = _find(child, pos)
                         if res:
-                            return child
+                            return res
                 return None
 
             return _find(self, -1)
@@ -93,13 +95,14 @@ class Unit(UnitInterface):
             length = len(id)
 
             def _find(elem: UnitInterface, index: int):
-                if index:
+                if index >= 0:
                     if index < length:
                         if not id[index] == elem.get_id():
                             return None
                 else:
-                    index = id.index(elem.get_id())
-                if not index:
+                    if elem.get_id() in id:
+                        index = id.index(elem.get_id())
+                if index < 0:
                     return None
                 if index == length - 1:
                     result.append(elem)
@@ -137,14 +140,17 @@ class Unit(UnitInterface):
         return changed
 
     def from_dict(self, json: dict) -> bool:
+        found = False
         if "id" in json.keys():
             self.id = json["id"]
+            found = True
 
         if "metadata" in json.keys():
             if not self.metadata:
                 self.metadata = Metadata()
             self.metadata.from_dict(json["metadata"])
-        return True
+            found = True
+        return found
 
     def to_dict(self) -> dict:
         res = dict(id=self.id)
