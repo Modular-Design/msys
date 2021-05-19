@@ -99,7 +99,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
     @staticmethod
     def connect(input: ConnectableInterface, output: ConnectableInterface) -> bool:
-        if not (issubclass(input, Connectable) and issubclass(output, Connectable)):
+        if not (issubclass(input.__class__, ConnectableInterface) and issubclass(output.__class__, ConnectableInterface)):
             return False
 
         if not input.get_type().is_connectable(output.get_type()):
@@ -119,7 +119,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
     @staticmethod
     def disconnect(input: ConnectableInterface, output: ConnectableInterface) -> bool:
-        if not (issubclass(input, Connectable) and issubclass(output, Connectable)):
+        if not (issubclass(Connectable, input.__class__) and issubclass(Connectable, output.__class__)):
             return False
 
         if not input in output.get_outgoing():

@@ -1,4 +1,5 @@
 from .unit import UniqueUnit
+from .interfaces import ConnectableInterface
 from .serializer_lists import ConnectableList
 from .connectable import ConnectableFlag, Connectable
 from .unit import Unit
@@ -117,7 +118,7 @@ class Module(UniqueUnit):
         return True
 
     def connect(self, obj0, obj1) -> bool:
-        if not (issubclass(obj0, Connectable) and issubclass(obj0, Connectable)):
+        if not (issubclass(obj0.__class__, ConnectableInterface.__class__) and issubclass(obj0.__class__, ConnectableInterface.__class__)):
             return False
 
         id0 = obj0.identifier()
