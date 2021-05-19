@@ -92,12 +92,12 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
     def connect_ingoing(self, output) -> bool:
         if output:
-            return connect(self, output)
+            return Connectable.connect(self, output)
         return False
 
     def connect_outgoing(self, input) -> bool:
         if input:
-            return connect(input, self)
+            return Connectable.connect(input, self)
         return False
 
     def connect_multiple_outgoing(self, inputs: list) -> bool:
@@ -110,14 +110,14 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
     def disconnect_ingoing(self) -> bool:
         if self.get_ingoing():
-            return disconnect(self, self.get_ingoing())
+            return Connectable.disconnect(self, self.get_ingoing())
         return True
 
     def disconnect_outgoing(self) -> bool:
         success = True
         if self.get_outgoing():
             for input in self.get_outgoing():
-                if not disconnect(input, self):
+                if not Connectable.disconnect(input, self):
                     success = False
         return success
 
