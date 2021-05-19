@@ -140,7 +140,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
         ingoing = input.get_ingoing()
         if ingoing:
-            if not disconnect_ingoing():
+            if not input.disconnect_ingoing():
                 return False
         input.input = weakref.ref(output)
 
