@@ -1,45 +1,12 @@
-
-class ConnectableInterface:
-    def get_value(self) -> []:
-        pass
-
-    def set_value(self, value) -> bool:
-        pass
-
-    def get_ingoing(self):
-        pass
-
-    def get_outgoing(self) -> []:
-        pass
-
-    def get_type(self):
-        pass
-
-    def connect_ingoing(self, output) -> bool:
-        pass
-
-    def connect_outgoing(self, input) -> bool:
-        pass
-
-    def disconnect_ingoing(self) -> bool:
-        pass
-
-    def disconnect_outgoing(self) -> bool:
-        pass
-
-    def is_changed(self) -> bool:
-        pass
-
-    def update(self) -> bool:
-        return True
-
+from .interfaces import ConnectableInterface
 from enum import Enum
+import weakref
+from .unit import UniqueUnit
+
+
 class ConnectableFlag(Enum):
     INPUT = 0
     OUTPUT = 1
-
-import weakref
-from .unit import UniqueUnit
 
 class Connectable(UniqueUnit, ConnectableInterface):
     def __init__(self, type):

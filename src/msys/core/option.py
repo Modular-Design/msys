@@ -1,4 +1,4 @@
-from .serializer import SerializerInterface, includes
+from .interfaces import SerializerInterface, includes
 import uuid
 
 

@@ -1,6 +1,6 @@
 from .unit import UniqueUnit
 from .serializer_lists import ConnectableList
-from .connectable import ConnectableFlag
+from .connectable import ConnectableFlag, Connectable
 from .unit import Unit
 
 class Module(UniqueUnit):

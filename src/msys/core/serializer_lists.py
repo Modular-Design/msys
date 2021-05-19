@@ -1,4 +1,4 @@
-from .serializer import SerializerInterface
+from .interfaces import SerializerInterface
 from .connectable import ConnectableFlag, ConnectableInterface
 from .unit import UnitInterface
 

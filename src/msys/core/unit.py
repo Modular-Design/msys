@@ -1,4 +1,4 @@
-from .serializer import SerializerInterface
+from .interfaces import SerializerInterface
 import uuid
 from .metadata import Metadata
 
