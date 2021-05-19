@@ -117,7 +117,7 @@ class Module(UniqueUnit):
         return True
 
     def connect(self, obj0, obj1) -> bool:
-        if not (issubclass(obj0, ConnectableInterface) and issubclass(obj0, ConnectableInterface)):
+        if not (issubclass(obj0, Connectable) and issubclass(obj0, Connectable)):
             return False
 
         id0 = obj0.identifier()
