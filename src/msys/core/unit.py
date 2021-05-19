@@ -1,10 +1,9 @@
 from .interfaces import SerializerInterface
-import uuid
 from .metadata import Metadata
 
 
 class UnitInterface(SerializerInterface):
-    def get_id(self) -> str:
+    def get_id(self):
         pass
 
     def identifier(self) -> []:
@@ -41,20 +40,20 @@ class UnitInterface(SerializerInterface):
 
 
 class Unit(UnitInterface):
-    def __init__(self, id: str, parent=None, metadata=None):
+    def __init__(self, id, parent=None, metadata=None):
         if metadata is None:
             metadata = Metadata()
         self.id = id
         self.metadata = metadata
         self.parent = parent
 
-    def get_id(self) -> str:
+    def get_id(self):
         return self.id
 
     def identifier(self) -> []:
         identifiers = [self.get_id()]
         if self.parent:
-            identifiers += self.parent.identifier()
+            identifiers = self.parent.identifier() + identifiers
         return identifiers
 
     def get_metadata(self) -> Metadata:
@@ -125,19 +124,20 @@ class Unit(UnitInterface):
         return self.parent
 
     def get_parents(self) -> []:
-        if self.parent:
-            parents = self.parent.get_parents()
-            parents += [self.parent]
-            return parents
-        return []
+        # if self.parent:
+        #     parents = self.parent.get_parents()
+        #     parents += [self.parent]
+        #     return parents
+        pass
 
     def update(self) -> bool:
-        changed = False
-        for child in self.get_childs():
-            res = child.update()
-            if res:
-                changed = True
-        return changed
+        # changed = False
+        # for child in self.get_childs():
+        #     res = child.update()
+        #     if res:
+        #         changed = True
+        # return changed
+        pass
 
     def from_dict(self, json: dict) -> bool:
         found = False
@@ -159,8 +159,3 @@ class Unit(UnitInterface):
             res.update({"metadata": self.metadata.to_dict()})
 
         return res
-
-
-class UniqueUnit(Unit):
-    def __init__(self):
-        super().__init__(str(uuid.uuid4()))

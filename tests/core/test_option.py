@@ -19,8 +19,16 @@ ldescipt= """
     "description",
     [None, "test_description", ldescipt],
 )
-def test_header_to_dict(id, title, description):
-    opt = Option(id=id, title=title, description=description)
+@pytest.mark.parametrize(
+    "selection, single",
+    [
+        ([], True),
+        (["a", "b", "c"], True),
+        (["a", "b", "c"], False),
+    ],
+)
+def test_header_to_dict(id, title, description, selection, single):
+    opt = Option(id=id, title=title, description=description, selection=selection, single=single)
     result = opt.to_dict()
 
     def _test_key(key: str, expected):
@@ -36,6 +44,7 @@ def test_header_to_dict(id, title, description):
     _test_key("id", id)
     _test_key("title", title)
     _test_key("description", description)
+    _test_key("selection", selection)
 
 
 @pytest.mark.core

@@ -1,18 +1,22 @@
-from .unit import UniqueUnit
 from .interfaces import ConnectableInterface
 from .serializer_lists import ConnectableList
 from .connectable import ConnectableFlag, Connectable
 from .unit import Unit
+import uuid
 
-class Module(UniqueUnit):
-    def __init__(self, inputs=[], outputs=[], options=[], sub_modules=[], inputs_generator=None, outputs_generator=None):
+
+class Module(Unit):
+    def __init__(self, inputs=[], outputs=[], options=[], sub_modules=[], id=None):
         self.inputs = ConnectableList(self, inputs, ConnectableFlag.INPUT)
         self.outputs = ConnectableList(self, outputs, ConnectableFlag.OUTPUT)
         self.options = options
         self.modules = []
         for module in sub_modules:
             self.add_module(module)
-        super().__init__()
+
+        if id is None:
+            id = str(uuid.uuid4())
+        super().__init__(id)
 
     def get_inputs(self):
         return list(self.inputs)
@@ -48,7 +52,6 @@ class Module(UniqueUnit):
         def _from_dict(key, lists, changeable=False):
             connectables = json[key]
             for new_c in connectables:
-                found = False
                 if not "id" in new_c:
                     break
                 for old_c in lists:
@@ -77,38 +80,39 @@ class Module(UniqueUnit):
         """
         pass
 
-    def is_tree(self)->bool:
+    def is_tree(self) -> bool:
         """
 
 
         """
-
-        found_modules = []
         for i in range(len(self.modules)):
             run = []
+
             def move_from(module) -> bool:
                 run.append(module)
                 outputs = module.get_outputs()
                 for out in outputs:
-                    parent = out.parent
-                    # prevent from going outside
-                    if not parent in self.modules:
-                        continue
-                    # preventing double findings
-                    if parent in run:
-                        continue
-                    # if circle
-                    if parent is self.modules[i]:
-                        return False
-                    if not move_from(parent):
-                        return False
+                    for input in out.get_outgoing():
+                        parent = input.parent
+                        # prevent from going outside
+                        if parent not in self.modules:
+                            continue
+                        # preventing double findings
+                        if parent in run:
+                            # if circle
+                            if parent is self.modules[i]:
+                                return False
+                            continue
+
+                        if not move_from(parent):
+                            return False
                 return True
 
             if not move_from(self.modules[i]):
                 return False
         return True
 
-    def is_connection_allowed(self)->bool:
+    def is_connection_allowed(self) -> bool:
         """
 
         Oberride this function
@@ -118,12 +122,14 @@ class Module(UniqueUnit):
         return True
 
     def connect(self, obj0, obj1) -> bool:
-        if not (issubclass(obj0.__class__, ConnectableInterface.__class__) and issubclass(obj0.__class__, ConnectableInterface.__class__)):
+        if not (issubclass(obj0.__class__,
+                           ConnectableInterface) and issubclass(obj1.__class__,
+                                                                ConnectableInterface)):
             return False
 
         id0 = obj0.identifier()
         id1 = obj1.identifier()
-        len_diff = len(id1)-len(id0)
+        len_diff = len(id1) - len(id0)
         if abs(len_diff) > 1:
             return False
 
@@ -131,7 +137,6 @@ class Module(UniqueUnit):
             obj1, obj0 = obj0, obj1
             id0 = obj0.identifier()
             id1 = obj1.identifier()
-            len_diff = abs(len_diff)
         # obj0 is higher or level with obj1
 
         # number of same levels
@@ -139,7 +144,7 @@ class Module(UniqueUnit):
         for i in range(len(id0)):
             if id0[i] != id1[i]:
                 break
-            ++same_till
+            same_till += 1
 
         # no same root
         if same_till == 0:
@@ -149,15 +154,29 @@ class Module(UniqueUnit):
         if len(id1) - same_till > 2:
             return False
 
+        parent_id = id0[:same_till]
+
         # determine which one is input and which one is output
-        if len_diff:
-            obj0_type = obj0.get_local()
-        else:
-            obj0_type = obj0.get_global()
-        obj1_type = obj1.get_global()
+        def get_type(p_id, obj):
+            po_diff = len(obj.identifier()) - len(p_id)
+            if po_diff == 1:
+                return obj.get_local()
+            elif po_diff == 2:
+                return obj.get_global()
+            else:
+                return None
+
+        obj0_type = get_type(parent_id, obj0)
+        if not obj0_type:
+            return False
+
+        obj1_type = get_type(parent_id, obj1)
+        if not obj1_type:
+            return False
 
         # cant connect if both have same type (i.e. Input-Input or Output-Output)
         if obj0_type == obj1_type:
+
             return False
 
         input = None
@@ -167,21 +186,20 @@ class Module(UniqueUnit):
         else:
             input, output = obj1, obj0
 
-        def _connect(parent):
+        def _connect(parent) -> bool:
             Connectable.connect(input, output)
-            if not parent.is_allowed():
+            if not parent.is_connection_allowed():
                 Connectable.disconnect(input, output)
+                return False
+            return True
 
-
-        parent_id = id0[:same_till]
         if parent_id != self.identifier():
             parent = self.find(parent_id)
-            if not parent:
-                return False
+            # if not parent:
+            #     return False
             return _connect(parent)
 
         return _connect(self)
-
 
     def update(self) -> bool:
         changed = self.inputs.update()

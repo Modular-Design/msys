@@ -56,8 +56,7 @@ class StandardType(TypeInterface):
         }
 
     def from_dict(self, json: dict) -> bool:
-        try:
-            self.value = json["value"]
-        except Exception:
+        if "value" not in json.keys():
             return False
+        self.value = json["value"]
         return True

@@ -94,30 +94,53 @@ def test_options(options):
 
 @pytest.mark.core
 def test_update():
-    module = Module(inputs=[Connectable(StandardType(123))], outputs=[Connectable(StandardType(123))])
+    module = Module(inputs=[Connectable(StandardType(123))],
+                    sub_modules=[
+                        Module(inputs=[Connectable(StandardType(123))],
+                               sub_modules=[],
+                               outputs=[Connectable(StandardType(123))])],
+                    outputs=[Connectable(StandardType(123))])
     assert module.update()
+    assert not module.update()
 
 
-child0_0 = Module()
-child0_0.from_dict({"id": 0})
-child0 = Module(sub_modules=[child0_0])
-child0.from_dict({"id": 0})
+child0_12 = Module(id=12,
+                   inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
+                   outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)], )
+child0 = Module(sub_modules=[child0_12], id=0)
 
-child1_0 = Module()
-child1_0.from_dict({"id": 0})
-child1 = Module(sub_modules=[child1_0])
-child1.from_dict({"id": 1})
+child1_5 = Module(id=5,
+                  inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
+                  outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)], )
+child1 = Module(sub_modules=[child1_5], id=1)
 
-parent = Module(sub_modules=[child0, child1])
-parent.from_dict({"id": 0})
+parent = Module(sub_modules=[child0, child1],
+                id=0,
+                inputs=[Connectable(StandardType(0), 3), Connectable(StandardType(0), 4)],
+                outputs=[Connectable(StandardType(0), 5), Connectable(StandardType(0), 5)])
+
+
+@pytest.mark.core
+@pytest.mark.parametrize(
+    "obj, identifier",
+    [
+        (child0_12, [0, 0, 12]),
+        (child1_5, [0, 1, 5]),
+        (child0, [0, 0]),
+        (child1, [0, 1]),
+        (parent, [0]),
+    ]
+)
+def test_identifier(obj, identifier):
+    assert obj.identifier() == identifier
 
 
 @pytest.mark.core
 @pytest.mark.parametrize(
     "identifier, correct",
     [
-        ([0, 0, 0], child0_0),
-        ([0, 1, 0], child1_0),
+        ([0, 0, 12], child0_12),
+        ([0, 1, 5], child1_5),
         ([0, 0], child0),
         ([0, 1], child1),
         ([0], parent),
@@ -129,12 +152,13 @@ parent.from_dict({"id": 0})
 def test_find(identifier, correct):
     assert parent.find(identifier) == correct
 
+
 @pytest.mark.core
 @pytest.mark.parametrize(
     "identifier, correct",
     [
-        ([0, 0, 0], [child0_0]),
-        ([0, 1, 0], [child1_0]),
+        ([0, 0, 12], [child0_12]),
+        ([0, 1, 5], [child1_5]),
         ([0, 0], [child0]),
         ([0, 1], [child1]),
         ([0], [parent]),
@@ -145,3 +169,124 @@ def test_find(identifier, correct):
 )
 def test_find_all(identifier, correct):
     assert parent.find_all(identifier) == correct
+
+
+def test_update_child():
+    assert parent.update()
+
+
+def test_is_tree_positive():
+    """
+
+        0 -> 1 -+-> 3 -> 4
+                |        A
+                v        |
+                2 -------+
+
+    """
+
+    child0 = Module(inputs=[Connectable(StandardType(0))], outputs=[Connectable(StandardType(0))])
+    child1 = Module(inputs=[Connectable(StandardType(1))], outputs=[Connectable(StandardType(1))])
+    child2 = Module(inputs=[Connectable(StandardType(2))], outputs=[Connectable(StandardType(2))])
+    child3 = Module(inputs=[Connectable(StandardType(3))], outputs=[Connectable(StandardType(3))])
+    child4 = Module(inputs=[Connectable(StandardType(4)), Connectable(StandardType(4))],
+                    outputs=[Connectable(StandardType(4))])
+
+    Connectable.connect(child1.get_inputs()[0], child0.get_outputs()[0])
+    Connectable.connect(child2.get_inputs()[0], child1.get_outputs()[0])
+    Connectable.connect(child3.get_inputs()[0], child1.get_outputs()[0])
+    Connectable.connect(child4.get_inputs()[0], child2.get_outputs()[0])
+    Connectable.connect(child4.get_inputs()[1], child3.get_outputs()[0])
+
+    tree = Module(sub_modules=[child0, child1, child2, child3, child4])
+    assert tree.is_tree()
+
+
+def test_is_tree_negative():
+    """
+
+        +----------------+
+        |                |
+        v                |
+        0 -> 1 -+-> 3 -> 4
+                |        A
+                v        |
+                2 -------+
+
+    """
+
+    child0 = Module(inputs=[Connectable(StandardType(0))], outputs=[Connectable(StandardType(0))])
+    child1 = Module(inputs=[Connectable(StandardType(1))], outputs=[Connectable(StandardType(1))])
+    child2 = Module(inputs=[Connectable(StandardType(2))], outputs=[Connectable(StandardType(2))])
+    child3 = Module(inputs=[Connectable(StandardType(3))], outputs=[Connectable(StandardType(3))])
+    child4 = Module(inputs=[Connectable(StandardType(4)), Connectable(StandardType(4))],
+                    outputs=[Connectable(StandardType(4))])
+
+    Connectable.connect(child1.get_inputs()[0], child0.get_outputs()[0])
+    Connectable.connect(child2.get_inputs()[0], child1.get_outputs()[0])
+    Connectable.connect(child3.get_inputs()[0], child1.get_outputs()[0])
+    Connectable.connect(child4.get_inputs()[0], child2.get_outputs()[0])
+    Connectable.connect(child4.get_inputs()[1], child3.get_outputs()[0])
+    Connectable.connect(child0.get_inputs()[0], child4.get_outputs()[0])
+
+    graph = Module(sub_modules=[child0, child1, child2, child3, child4])
+    assert not graph.is_tree()
+
+
+@pytest.mark.core
+@pytest.mark.parametrize(
+    "id0, id1, correct",
+    [
+        ([0, 0], [0, 3], True),
+        ([0, 0], [0, 4, 0], True),
+        ([0, 4, 0], [0, 1], True),
+        ([0, 0], [0, 4], False),
+        ([0, 5, 0], [0, 5, 6, 0], True),
+    ]
+)
+def test_connection(id0, id1, correct):
+    """
+
+            |             [0,4]                                                                         |
+            |   #########################                                                               |
+     [0,0]  |   [0,4,0] |       | [0,4,2]                              [0,5]                            |
+            |   [0,4,1] |       | [0,4,3]     #######################################################   |   [0,2]
+            |                                         |               [0,5,6]               |           |
+            |                                 [0,5,0] |     ###########################     | [0,5,3]   |
+            |                                 [0,5,1] |     [0,5,6,0] |     | [0,5,6,2]     | [0,5,4]   |
+            |                                 [0,5,2] |     [0,5,6,1] |     | [0,5,6,3]     | [0,5,5]   |
+     [0,1]  |                                                                                           |   [0,3]
+            |                                                                                           |
+
+
+    """
+
+    mod0_4 = Module(id=4,
+                    inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
+                    outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)],
+                    sub_modules=[])
+
+    mod0_5_6 = Module(id=6,
+                      inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
+                      outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)],
+                      sub_modules=[])
+
+    mod0_5 = Module(id=5,
+                    inputs=[Connectable(StandardType(0), 0),
+                            Connectable(StandardType(0), 1),
+                            Connectable(StandardType(0), 2)],
+                    outputs=[Connectable(StandardType(0), 3),
+                             Connectable(StandardType(0), 4),
+                             Connectable(StandardType(0), 5)],
+                    sub_modules=[mod0_5_6])
+
+    mod0 = Module(id=0,
+                  inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
+                  outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)],
+                  sub_modules=[mod0_4, mod0_5])
+
+    obj0 = mod0.find(id0)
+    assert obj0
+    obj1 = mod0.find(id1)
+    assert obj1
+    assert mod0.connect(obj0, obj1) == correct

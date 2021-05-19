@@ -1,21 +1,24 @@
 from .interfaces import ConnectableInterface
 from enum import Enum
 import weakref
-from .unit import UniqueUnit
+from .unit import Unit
+import uuid
 
 
 class ConnectableFlag(Enum):
     INPUT = 0
     OUTPUT = 1
 
-class Connectable(UniqueUnit, ConnectableInterface):
-    def __init__(self, type):
-        super().__init__()
+
+class Connectable(Unit, ConnectableInterface):
+    def __init__(self, type, id=None):
+        if id is None:
+            id = str(uuid.uuid4())
+        super().__init__(id)
         self.ctype = type
         self.input = None
         self.outputs = []
         self.flag = None
-
 
     def set_global(self, flag: ConnectableFlag):
         self.flag = flag
@@ -28,7 +31,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
         else:
             return ConnectableFlag.INPUT
 
-    def get_globel(self):
+    def get_global(self):
         return self.flag
 
     def get_value(self):
@@ -52,7 +55,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
     def get_outgoing(self) -> []:
         res = []
         for out in self.outputs:
-            obj =  out()
+            obj = out()
             if obj:
                 res.append(obj)
         return res
@@ -84,6 +87,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
         success = True
         if self.get_outgoing():
             for input in self.get_outgoing():
+                print(input)
                 if not Connectable.disconnect(input, self):
                     success = False
         return success
@@ -99,7 +103,8 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
     @staticmethod
     def connect(input: ConnectableInterface, output: ConnectableInterface) -> bool:
-        if not (issubclass(input.__class__, ConnectableInterface) and issubclass(output.__class__, ConnectableInterface)):
+        if not (issubclass(input.__class__, ConnectableInterface) and issubclass(output.__class__,
+                                                                                 ConnectableInterface)):
             return False
 
         if not input.get_type().is_connectable(output.get_type()):
@@ -115,7 +120,6 @@ class Connectable(UniqueUnit, ConnectableInterface):
         if not input in outgoing:
             output.outputs.append(weakref.ref(input))
         return True
-
 
     @staticmethod
     def disconnect(input: ConnectableInterface, output: ConnectableInterface) -> bool:

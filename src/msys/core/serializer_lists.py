@@ -2,6 +2,7 @@ from .interfaces import SerializerInterface
 from .connectable import ConnectableFlag, ConnectableInterface
 from .unit import UnitInterface
 
+
 class SerializableList(SerializerInterface):
     def __init__(self, parent,  elems: [], flag: ConnectableFlag):
         self.parent = parent

@@ -30,3 +30,25 @@ def test_is_connectable(obj, correct):
 def test_from_path(obj):
     path, value = obj()
     assert FileType.from_path(path).value == value
+
+
+@pytest.mark.types
+def test_from_path_exception():
+    try:
+        FileType.from_path("does not exist")
+        assert False
+    except FileNotFoundError:
+        assert True
+
+@pytest.mark.types
+@pytest.mark.parametrize(
+    "json",
+    [
+        {"value": 0},
+    ],
+)
+def test_serialisation(json):
+    type = FileType()
+    assert type.from_dict(json)
+    assert type
+    assert type.to_dict() == json
