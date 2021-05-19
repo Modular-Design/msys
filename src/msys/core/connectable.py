@@ -104,7 +104,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
         worked = True
         if inputs:
             for input in inputs:
-                if not connect(input, self):
+                if not Connectable.connect(input, self):
                     worked = False
         return worked
 
@@ -140,7 +140,7 @@ class Connectable(UniqueUnit, ConnectableInterface):
 
         ingoing = input.get_ingoing()
         if ingoing:
-            if not self.disconnect_ingoing():
+            if not disconnect_ingoing():
                 return False
         input.input = weakref.ref(output)
 
