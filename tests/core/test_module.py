@@ -1,5 +1,5 @@
 import pytest
-from msys.core import Module, Input, Output, StandardType, Option
+from msys.core import Module, Connectable, StandardType, Option
 
 
 @pytest.mark.core
@@ -20,23 +20,23 @@ def test_uniqueness():
     "inputs",
     [
         [],
-        [Input(StandardType(123, "input_type"))],
+        [Connectable(StandardType(123))],
     ]
 )
 @pytest.mark.parametrize(
     "outputs",
     [
         [],
-        [Output(StandardType(456, "output_type"))],
+        [Connectable(StandardType(456))],
     ]
 )
 def test_basics(options, inputs, outputs):
     module = Module(options=options,
                     inputs=inputs, outputs=outputs)
     assert module
-    assert module.get_inputs()[:] == inputs
-    assert module.get_outputs()[:] == outputs
-    assert module.get_options()[:] == options
+    assert module.get_inputs() == inputs
+    assert module.get_outputs() == outputs
+    assert module.get_options() == options
     assert module.get_childs() == inputs + outputs
 
 
@@ -46,10 +46,10 @@ def test_basics(options, inputs, outputs):
     [
         (
                 {'id': "1",
-                 'inputs': {'changeable': False, 'elements': [], 'size': 0},
+                 'inputs': [],
                  'metadata': {},
                  'options': [],
-                 'outputs': {'changeable': False, 'elements': [], 'size': 0}
+                 'outputs': []
                  }, True
         ),
         ({}, False)
@@ -94,7 +94,7 @@ def test_options(options):
 
 @pytest.mark.core
 def test_update():
-    module = Module(inputs=[Input(StandardType(123, "input_type"))], outputs=[Input(StandardType(123, "input_type"))])
+    module = Module(inputs=[Connectable(StandardType(123))], outputs=[Connectable(StandardType(123))])
     assert module.update()
 
 

@@ -1,7 +1,7 @@
 {
     "description": "<p>MSYS is a Framework, which simplifies modular development processes in python.</p>",
     "license": "BSD-3-Clause",
-    "title": "MSYS: A Modulare Python Framework",
+    "title": "MSYS: A Modular Python Framework",
     "upload_type": "software",
     "keywords": [
         "modular",
@@ -11,7 +11,6 @@
     ],
     "creators": [
         {
-            "affiliation": "DigiFors GmbH",
             "name": "Willi Zschiebsch"
         }
     ],

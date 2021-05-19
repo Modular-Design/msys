@@ -1,5 +1,5 @@
 import pytest
-from msys.core.connection import Input, StandardType
+from msys.core import Connectable, StandardType
 
 
 @pytest.mark.core
@@ -13,9 +13,9 @@ from msys.core.connection import Input, StandardType
     ],
 )
 def test_create(value):
-    ins = Input(value)
-    assert ins.get_value() == value.get_value()
-    assert ins.is_changed()
+    con = Connectable(value)
+    assert con.get_value() == value.get_value()
+    assert con.is_changed()
 
 
 @pytest.mark.core
@@ -30,9 +30,9 @@ def test_create(value):
     ],
 )
 def test_set_value(value):
-    ins = Input(StandardType(None))
-    ins.set_value(value)
-    assert ins.get_value() == value
+    con = Connectable(StandardType(None))
+    con.set_value(value)
+    assert con.get_value() == value
 
 @pytest.mark.core
 @pytest.mark.connection
@@ -46,23 +46,9 @@ def test_set_value(value):
     ],
 )
 def test_set_value(value, correct):
-    ins = Input(type=StandardType())
-    success = ins.set_value(value)
+    con = Connectable(type=StandardType())
+    success = con.set_value(value)
     assert success == correct
     if success:
-        assert ins.get_value() == value
-        assert ins.is_changed()
-
-
-@pytest.mark.core
-@pytest.mark.connection
-@pytest.mark.parametrize(
-    "output",
-    [
-        StandardType("1"),
-    ],
-)
-def test_connection_field(output):
-    ins = Input(type=StandardType(None), output=output)
-    assert ins.get_value() == output.get_value()
-    assert ins.is_changed()
+        assert con.get_value() == value
+        assert con.is_changed()

@@ -1,5 +1,5 @@
 import pytest
-from msys.core.connection import StandardType, TypeInterface
+from msys.core import StandardType, TypeInterface
 from msys.registration import get_types
 
 

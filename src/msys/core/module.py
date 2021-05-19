@@ -1,11 +1,12 @@
 from .unit import UniqueUnit
-from .serializer import ConnectableList
+from .serializer_lists import ConnectableList
+from .connectable import ConnectableFlag
 from .unit import Unit
 
 class Module(UniqueUnit):
     def __init__(self, inputs=[], outputs=[], options=[], sub_modules=[], inputs_generator=None, outputs_generator=None):
-        self.inputs = ConnectableList(inputs, inputs_generator)
-        self.outputs = ConnectableList(outputs, outputs_generator)
+        self.inputs = ConnectableList(self, inputs, ConnectableFlag.INPUT)
+        self.outputs = ConnectableList(self, outputs, ConnectableFlag.OUTPUT)
         self.options = options
         self.modules = []
         for module in sub_modules:
@@ -13,10 +14,10 @@ class Module(UniqueUnit):
         super().__init__()
 
     def get_inputs(self):
-        return self.inputs
+        return list(self.inputs)
 
     def get_outputs(self):
-        return self.outputs
+        return list(self.outputs)
 
     def get_options(self):
         return self.options
@@ -74,6 +75,112 @@ class Module(UniqueUnit):
         :return:
         """
         pass
+
+    def is_tree(self)->bool:
+        """
+
+
+        """
+
+        found_modules = []
+        for i in range(len(self.modules)):
+            run = []
+            def move_from(module) -> bool:
+                run.append(module)
+                outputs = module.get_outputs()
+                for out in outputs:
+                    parent = out.parent
+                    # prevent from going outside
+                    if not parent in self.modules:
+                        continue
+                    # preventing double findings
+                    if parent in run:
+                        continue
+                    # if circle
+                    if parent is self.modules[i]:
+                        return False
+                    if not move_from(parent):
+                        return False
+                return True
+
+            if not move_from(self.modules[i]):
+                return False
+        return True
+
+    def is_connection_allowed(self)->bool:
+        """
+
+        Oberride this function
+        Returns:
+
+        """
+        return True
+
+    def connect(self, obj0, obj1) -> bool:
+        if not (issubclass(obj0, ConnectableInterface) and issubclass(obj0, ConnectableInterface)):
+            return False
+
+        id0 = obj0.identifier()
+        id1 = obj1.identifier()
+        len_diff = len(id1)-len(id0)
+        if abs(len_diff) > 1:
+            return False
+
+        if len_diff < 0:
+            obj1, obj0 = obj0, obj1
+            id0 = obj0.identifier()
+            id1 = obj1.identifier()
+            len_diff = abs(len_diff)
+        # obj0 is higher or level with obj1
+
+        # number of same levels
+        same_till = 0
+        for i in range(len(id0)):
+            if id0[i] != id1[i]:
+                break
+            ++same_till
+
+        # no same root
+        if same_till == 0:
+            return False
+
+        # same level but different branches
+        if len(id1) - same_till > 2:
+            return False
+
+        # determine which one is input and which one is output
+        if len_diff:
+            obj0_type = obj0.get_local()
+        else:
+            obj0_type = obj0.get_global()
+        obj1_type = obj1.get_global()
+
+        # cant connect if both have same type (i.e. Input-Input or Output-Output)
+        if obj0_type == obj1_type:
+            return False
+
+        input = None
+        output = None
+        if obj0_type == ConnectableFlag.INPUT:
+            input, output = obj0, obj1
+        else:
+            input, output = obj1, obj0
+
+        def _connect(parent):
+            Connectable.connect(input, output)
+            if not parent.is_allowed():
+                Connectable.disconnect(input, output)
+
+
+        parent_id = id0[:same_till]
+        if parent_id != self.identifier():
+            parent = self.find(parent_id)
+            if not parent:
+                return False
+            return _connect(parent)
+
+        return _connect(self)
+
 
     def update(self) -> bool:
         changed = self.inputs.update()

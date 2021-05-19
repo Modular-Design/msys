@@ -26,8 +26,7 @@ class TypeInterface:
 
 
 class StandardType(TypeInterface):
-    def __init__(self, default_value="", type_name="standard"):
-        self.type_name = type_name
+    def __init__(self, default_value=""):
         self.changed = True
         self.value = default_value
 
@@ -53,7 +52,6 @@ class StandardType(TypeInterface):
 
     def to_dict(self) -> dict:
         return {
-            "type": self.type_name,
             "value": self.value,
         }
 
