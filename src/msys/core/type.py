@@ -25,8 +25,11 @@ class TypeInterface:
         pass
 
 
-class StandardType(TypeInterface):
+from .registrable import Registrable
+
+class StandardType(Registrable, TypeInterface):
     def __init__(self, default_value=""):
+        super().__init__()
         self.changed = True
         self.value = default_value
 
@@ -51,11 +54,12 @@ class StandardType(TypeInterface):
         return True
 
     def to_dict(self) -> dict:
-        return {
-            "value": self.value,
-        }
+        res = super().to_dict()
+        res["value"] = self.value
+        return res
 
     def from_dict(self, json: dict) -> bool:
+        found = super().from_dict(json)
         if "value" not in json.keys():
             return False
         self.value = json["value"]

@@ -64,4 +64,3 @@ class ConnectableInterface(ABC):# metaclass=ABCMeta
     @abstractmethod
     def update(self) -> bool:
         return True
-

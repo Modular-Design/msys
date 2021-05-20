@@ -1,11 +1,12 @@
 from .interfaces import ConnectableInterface
 from .serializer_lists import ConnectableList
 from .connectable import ConnectableFlag, Connectable
+from .registrable import Registrable
 from .unit import Unit
 import uuid
 
 
-class Module(Unit):
+class Module(Unit, Registrable):
     def __init__(self, inputs=[], outputs=[], options=[], sub_modules=[], id=None):
         self.inputs = ConnectableList(self, inputs, ConnectableFlag.INPUT)
         self.outputs = ConnectableList(self, outputs, ConnectableFlag.OUTPUT)
@@ -17,6 +18,7 @@ class Module(Unit):
         if id is None:
             id = str(uuid.uuid4())
         super().__init__(id)
+        Registrable.__init__(self)
 
     def get_inputs(self):
         return list(self.inputs)
@@ -36,6 +38,8 @@ class Module(Unit):
 
     def to_dict(self) -> dict:
         res = super().to_dict()
+        res.update(Registrable.to_dict(self))
+
         options = []
         for o in self.options:
             options.append(o.to_dict())
@@ -48,6 +52,8 @@ class Module(Unit):
 
     def from_dict(self, json: dict) -> bool:
         found = super().from_dict(json)
+        if Registrable.from_dict(self, json):
+            found = True
 
         def _from_dict(key, lists, changeable=False):
             connectables = json[key]

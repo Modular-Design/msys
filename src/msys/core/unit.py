@@ -1,6 +1,5 @@
-from .interfaces import SerializerInterface
 from .metadata import Metadata
-
+from .interfaces import SerializerInterface
 
 class UnitInterface(SerializerInterface):
     def get_id(self):
@@ -153,7 +152,8 @@ class Unit(UnitInterface):
         return found
 
     def to_dict(self) -> dict:
-        res = dict(id=self.id)
+        res = dict()
+        res["id"] = self.id
 
         if self.metadata:
             res.update({"metadata": self.metadata.to_dict()})

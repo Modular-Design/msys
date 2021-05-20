@@ -19,7 +19,7 @@ class FileType(StandardType):
             res["file_name"] = self.file_name
         return res
 
-    @staticmethod
-    def from_path(path):
+    @classmethod
+    def from_path(cls, path):
         p = pathlib.Path(path)
         return FileType(p.name, p.read_bytes())
