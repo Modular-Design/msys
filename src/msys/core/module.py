@@ -187,9 +187,9 @@ class Module(Unit):
             input, output = obj1, obj0
 
         def _connect(parent) -> bool:
-            Connectable.connect(input, output)
+            Connectable.connect(output, input)
             if not parent.is_connection_allowed():
-                Connectable.disconnect(input, output)
+                Connectable.disconnect(output, input)
                 return False
             return True
 

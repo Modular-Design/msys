@@ -62,25 +62,25 @@ class Connectable(Unit, ConnectableInterface):
 
     def connect_ingoing(self, output) -> bool:
         if output:
-            return Connectable.connect(self, output)
+            return Connectable.connect(output, self)
         return False
 
     def connect_outgoing(self, input) -> bool:
         if input:
-            return Connectable.connect(input, self)
+            return Connectable.connect(self, input)
         return False
 
     def connect_multiple_outgoing(self, inputs: list) -> bool:
         worked = True
         if inputs:
             for input in inputs:
-                if not Connectable.connect(input, self):
+                if not Connectable.connect(self, input):
                     worked = False
         return worked
 
     def disconnect_ingoing(self) -> bool:
         if self.get_ingoing():
-            return Connectable.disconnect(self, self.get_ingoing())
+            return Connectable.disconnect(self.get_ingoing(), self)
         return True
 
     def disconnect_outgoing(self) -> bool:
@@ -88,7 +88,7 @@ class Connectable(Unit, ConnectableInterface):
         if self.get_outgoing():
             for input in self.get_outgoing():
                 print(input)
-                if not Connectable.disconnect(input, self):
+                if not Connectable.disconnect(self, input):
                     success = False
         return success
 
@@ -102,7 +102,7 @@ class Connectable(Unit, ConnectableInterface):
         return result
 
     @staticmethod
-    def connect(input: ConnectableInterface, output: ConnectableInterface) -> bool:
+    def connect(output: ConnectableInterface, input : ConnectableInterface) -> bool:
         if not (issubclass(input.__class__, ConnectableInterface) and issubclass(output.__class__,
                                                                                  ConnectableInterface)):
             return False
@@ -122,7 +122,7 @@ class Connectable(Unit, ConnectableInterface):
         return True
 
     @staticmethod
-    def disconnect(input: ConnectableInterface, output: ConnectableInterface) -> bool:
+    def disconnect(output: ConnectableInterface,  input:ConnectableInterface) -> bool:
         if not (issubclass(Connectable, input.__class__) and issubclass(Connectable, output.__class__)):
             return False
 

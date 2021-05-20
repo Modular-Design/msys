@@ -192,11 +192,11 @@ def test_is_tree_positive():
     child4 = Module(inputs=[Connectable(StandardType(4)), Connectable(StandardType(4))],
                     outputs=[Connectable(StandardType(4))])
 
-    Connectable.connect(child1.get_inputs()[0], child0.get_outputs()[0])
-    Connectable.connect(child2.get_inputs()[0], child1.get_outputs()[0])
-    Connectable.connect(child3.get_inputs()[0], child1.get_outputs()[0])
-    Connectable.connect(child4.get_inputs()[0], child2.get_outputs()[0])
-    Connectable.connect(child4.get_inputs()[1], child3.get_outputs()[0])
+    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
 
     tree = Module(sub_modules=[child0, child1, child2, child3, child4])
     assert tree.is_tree()
@@ -222,12 +222,12 @@ def test_is_tree_negative():
     child4 = Module(inputs=[Connectable(StandardType(4)), Connectable(StandardType(4))],
                     outputs=[Connectable(StandardType(4))])
 
-    Connectable.connect(child1.get_inputs()[0], child0.get_outputs()[0])
-    Connectable.connect(child2.get_inputs()[0], child1.get_outputs()[0])
-    Connectable.connect(child3.get_inputs()[0], child1.get_outputs()[0])
-    Connectable.connect(child4.get_inputs()[0], child2.get_outputs()[0])
-    Connectable.connect(child4.get_inputs()[1], child3.get_outputs()[0])
-    Connectable.connect(child0.get_inputs()[0], child4.get_outputs()[0])
+    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+    Connectable.connect(child4.get_outputs()[0], child0.get_inputs()[0])
 
     graph = Module(sub_modules=[child0, child1, child2, child3, child4])
     assert not graph.is_tree()

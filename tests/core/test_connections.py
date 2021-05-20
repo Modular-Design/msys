@@ -9,12 +9,12 @@ def test_connect_input_output():
     output = Connectable(StandardType([1, 3]))
 
     def test_disconect(ins, outs):
-        Connectable.disconnect(ins, outs)
+        Connectable.disconnect(outs, ins)
         ins.set_value(1)
         assert outs.get_value() != ins.get_value()
 
     def test_connect(ins, outs):
-        Connectable.connect(ins, outs)
+        Connectable.connect(outs, ins)
         assert outs.get_value() == ins.get_value()
 
     def test_connect_ingoing(ins, outs):
