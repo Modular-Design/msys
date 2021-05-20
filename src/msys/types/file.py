@@ -1,9 +1,9 @@
 import pathlib
 
-from ..core.type import StandardType
+from ..core.type import Type
 
 
-class FileType(StandardType):
+class FileType(Type):
     def __init__(self, name="", value=b""):
         self.file_name = name
         super().__init__(default_value=value)

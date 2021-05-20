@@ -1,21 +1,5 @@
-def get_class_info(rclass):
-    import re
-    patern = r"<class '(.*?)'>"
-    string = str(rclass)
-    id, = re.findall(patern, string)
-    res = id.split(".")
-    if len(res) > 1:
-        return dict(package=res[0], name=res[-1])
-    else:
-        return dict(package=[], name=res[0])
+from msys.core.registrable import get_class_info, set_class_info
 
-def set_class_info(rclass, info) -> bool:
-    from msys.core.registrable import Registrable
-    if not issubclass(rclass, Registrable):
-        return False
-    rclass.registered_name = info["name"]
-    rclass.registered_package = info["package"]
-    return True
 
 def get_registered(entry_name: str):
     registered = []

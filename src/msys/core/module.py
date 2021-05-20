@@ -82,9 +82,74 @@ class Module(Unit, Registrable):
     def process(self) -> None:
         """
         Overide this methode!
-        :return:
+        Describs inner proccesing.
         """
-        pass
+
+        def eval_tim_score(module, dtime):
+            if dtime <= 1:
+                dtime = 1
+            import math
+            module.time_score = round(math.log10(dtime))
+
+        def prioritize(priorities, complexity=0):
+            if complexity == 0:
+                return sorted(priorities, key=lambda module: (module.inputs.get_no_connected(),
+                                                            -module.outputs.get_no_connected()))
+            if complexity == 1:
+                # priority by:
+                # lower connected inputs
+                # then lower time score
+                # then lowest change counter: connected inputs - input changes
+                # then highest changes
+                # then highest output connections
+                return sorted(priorities, key=lambda module: (
+                    module.inputs.get_no_connected(),
+                    module.time_score,
+                    module.inputs.get_no_connected() - module.inputs.get_no_changed(),
+                    -module.inputs.get_no_changed(),
+                    module.outputs.get_no_connected()))
+            return []
+
+        self.modules = prioritize(self.modules)
+        if self.is_tree():
+            for m in self.modules:
+                m.update()
+            return True
+
+        # solve complex graph
+        iteration = 0
+        max_iterations = 500
+        start_from = 0
+        group_changed = True
+        priority_list = self.modules.copy()
+        while group_changed:
+            if iteration > max_iterations:
+                break
+            ++ iteration
+            group_changed = False
+            for m_id in range(start_from, len(priority_list)):
+                module = priority_list[m_id]
+                import time
+                start = time.time()
+                changed = module.update()
+                delta_time = time.time() - start
+                eval_tim_score(module, delta_time)
+                if changed:
+                    group_changed = True
+
+                # ignore modules which can change only once in the future
+                if module.inputs.get_no_connected() == 0:
+                    start_from = m_id
+                if not (m_id + 1 < len(self.modules)):
+                    continue
+                # TODO ignore if connected inputs are 0?
+                if priority_list[m_id].inputs.get_no_connected() == priority_list[m_id + 1].inputs.get_no_connected():
+                    # register inflicted changes
+                    for m in priority_list:
+                        m.inputs.update_numbers()
+
+                    priority_list = priority_list[:start_from] + prioritize(priority_list[start_from:], 1)
+        return True
 
     def is_tree(self) -> bool:
         """

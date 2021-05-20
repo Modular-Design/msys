@@ -1,5 +1,5 @@
 import pytest
-from msys.core import Module, Connectable, StandardType, Option
+from msys.core import Module, Connectable, Type, Option
 
 
 @pytest.mark.core
@@ -20,14 +20,14 @@ def test_uniqueness():
     "inputs",
     [
         [],
-        [Connectable(StandardType(123))],
+        [Connectable(Type(123))],
     ]
 )
 @pytest.mark.parametrize(
     "outputs",
     [
         [],
-        [Connectable(StandardType(456))],
+        [Connectable(Type(456))],
     ]
 )
 def test_basics(options, inputs, outputs):
@@ -94,30 +94,30 @@ def test_options(options):
 
 @pytest.mark.core
 def test_update():
-    module = Module(inputs=[Connectable(StandardType(123))],
+    module = Module(inputs=[Connectable(Type(123))],
                     sub_modules=[
-                        Module(inputs=[Connectable(StandardType(123))],
+                        Module(inputs=[Connectable(Type(123))],
                                sub_modules=[],
-                               outputs=[Connectable(StandardType(123))])],
-                    outputs=[Connectable(StandardType(123))])
+                               outputs=[Connectable(Type(123))])],
+                    outputs=[Connectable(Type(123))])
     assert module.update()
     # assert not module.update()
 
 
 child0_12 = Module(id=12,
-                   inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
-                   outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)], )
+                   inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                   outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)], )
 child0 = Module(sub_modules=[child0_12], id=0)
 
 child1_5 = Module(id=5,
-                  inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
-                  outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)], )
+                  inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                  outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)], )
 child1 = Module(sub_modules=[child1_5], id=1)
 
 parent = Module(sub_modules=[child0, child1],
                 id=0,
-                inputs=[Connectable(StandardType(0), 3), Connectable(StandardType(0), 4)],
-                outputs=[Connectable(StandardType(0), 5), Connectable(StandardType(0), 5)])
+                inputs=[Connectable(Type(0), 3), Connectable(Type(0), 4)],
+                outputs=[Connectable(Type(0), 5), Connectable(Type(0), 5)])
 
 
 @pytest.mark.core
@@ -185,12 +185,12 @@ def test_is_tree_positive():
 
     """
 
-    child0 = Module(inputs=[Connectable(StandardType(0))], outputs=[Connectable(StandardType(0))])
-    child1 = Module(inputs=[Connectable(StandardType(1))], outputs=[Connectable(StandardType(1))])
-    child2 = Module(inputs=[Connectable(StandardType(2))], outputs=[Connectable(StandardType(2))])
-    child3 = Module(inputs=[Connectable(StandardType(3))], outputs=[Connectable(StandardType(3))])
-    child4 = Module(inputs=[Connectable(StandardType(4)), Connectable(StandardType(4))],
-                    outputs=[Connectable(StandardType(4))])
+    child0 = Module(inputs=[Connectable(Type(0))], outputs=[Connectable(Type(0))])
+    child1 = Module(inputs=[Connectable(Type(1))], outputs=[Connectable(Type(1))])
+    child2 = Module(inputs=[Connectable(Type(2))], outputs=[Connectable(Type(2))])
+    child3 = Module(inputs=[Connectable(Type(3))], outputs=[Connectable(Type(3))])
+    child4 = Module(inputs=[Connectable(Type(4)), Connectable(Type(4))],
+                    outputs=[Connectable(Type(4))])
 
     Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
     Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
@@ -215,12 +215,12 @@ def test_is_tree_negative():
 
     """
 
-    child0 = Module(inputs=[Connectable(StandardType(0))], outputs=[Connectable(StandardType(0))])
-    child1 = Module(inputs=[Connectable(StandardType(1))], outputs=[Connectable(StandardType(1))])
-    child2 = Module(inputs=[Connectable(StandardType(2))], outputs=[Connectable(StandardType(2))])
-    child3 = Module(inputs=[Connectable(StandardType(3))], outputs=[Connectable(StandardType(3))])
-    child4 = Module(inputs=[Connectable(StandardType(4)), Connectable(StandardType(4))],
-                    outputs=[Connectable(StandardType(4))])
+    child0 = Module(inputs=[Connectable(Type(0))], outputs=[Connectable(Type(0))])
+    child1 = Module(inputs=[Connectable(Type(1))], outputs=[Connectable(Type(1))])
+    child2 = Module(inputs=[Connectable(Type(2))], outputs=[Connectable(Type(2))])
+    child3 = Module(inputs=[Connectable(Type(3))], outputs=[Connectable(Type(3))])
+    child4 = Module(inputs=[Connectable(Type(4)), Connectable(Type(4))],
+                    outputs=[Connectable(Type(4))])
 
     Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
     Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
@@ -262,27 +262,27 @@ def test_connection(id0, id1, correct):
     """
 
     mod0_4 = Module(id=4,
-                    inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
-                    outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)],
+                    inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                    outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)],
                     sub_modules=[])
 
     mod0_5_6 = Module(id=6,
-                      inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
-                      outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)],
+                      inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                      outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)],
                       sub_modules=[])
 
     mod0_5 = Module(id=5,
-                    inputs=[Connectable(StandardType(0), 0),
-                            Connectable(StandardType(0), 1),
-                            Connectable(StandardType(0), 2)],
-                    outputs=[Connectable(StandardType(0), 3),
-                             Connectable(StandardType(0), 4),
-                             Connectable(StandardType(0), 5)],
+                    inputs=[Connectable(Type(0), 0),
+                            Connectable(Type(0), 1),
+                            Connectable(Type(0), 2)],
+                    outputs=[Connectable(Type(0), 3),
+                             Connectable(Type(0), 4),
+                             Connectable(Type(0), 5)],
                     sub_modules=[mod0_5_6])
 
     mod0 = Module(id=0,
-                  inputs=[Connectable(StandardType(0), 0), Connectable(StandardType(0), 1)],
-                  outputs=[Connectable(StandardType(0), 2), Connectable(StandardType(0), 3)],
+                  inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                  outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)],
                   sub_modules=[mod0_4, mod0_5])
 
     obj0 = mod0.find(id0)
@@ -290,3 +290,102 @@ def test_connection(id0, id1, correct):
     obj1 = mod0.find(id1)
     assert obj1
     assert mod0.connect(obj0, obj1) == correct
+
+
+def test_process_tree():
+    """
+
+            0 -> 1 -+-> 3 -> 4
+                    |        A
+                    v        |
+                    2 -------+
+
+        """
+
+    def move_min(self):
+        print("min")
+        min_val = 4
+        for input in self.get_inputs():
+            val = input.get_value()
+            print(val)
+            if min_val > val:
+                min_val = val
+        print("min", min_val)
+        self.get_outputs()[0].set_value(min_val)
+        return True
+
+    child0 = Module(inputs=[Connectable(Type(0))], outputs=[Connectable(Type(0))])
+    child1 = Module(inputs=[Connectable(Type(1))], outputs=[Connectable(Type(1))])
+    child2 = Module(inputs=[Connectable(Type(2))], outputs=[Connectable(Type(2))])
+    child3 = Module(inputs=[Connectable(Type(3))], outputs=[Connectable(Type(3))])
+    child4 = Module(inputs=[Connectable(Type(4)), Connectable(Type(4))],
+                    outputs=[Connectable(Type(4))])
+
+    childs = [child0, child1, child2, child3, child4]
+
+    import types
+    for child in childs:
+        child.process = types.MethodType(move_min, child)
+
+    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+
+    tree = Module(sub_modules=childs)
+    assert tree.update()
+    assert not tree.update()
+    assert child4.get_outputs()[0].get_value() == 0
+
+
+def test_is_tree_negative():
+    """
+
+        +----------------+
+        |                |
+        v                |
+        0 -> 1 -+-> 3 -> 4
+                |        A
+                v        |
+                2 -------+
+
+    """
+
+    def move_min(self):
+        print("min")
+        min_val = 4
+        for input in self.get_inputs():
+            val = input.get_value()
+            print(val)
+            if min_val > val:
+                min_val = val
+        print("min", min_val)
+        self.get_outputs()[0].set_value(min_val)
+        return True
+
+    child0 = Module(inputs=[Connectable(Type(0)), Connectable(Type(0))], outputs=[Connectable(Type(0))])
+    child1 = Module(inputs=[Connectable(Type(1)), Connectable(Type(1))], outputs=[Connectable(Type(1))])
+    child2 = Module(inputs=[Connectable(Type(2))], outputs=[Connectable(Type(2))])
+    child3 = Module(inputs=[Connectable(Type(3))], outputs=[Connectable(Type(3))])
+    child4 = Module(inputs=[Connectable(Type(4)), Connectable(Type(4))],
+                    outputs=[Connectable(Type(4))])
+
+    childs = [child0, child1, child2, child3, child4]
+
+    import types
+    for child in childs:
+        child.process = types.MethodType(move_min, child)
+
+    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+    Connectable.connect(child4.get_outputs()[0], child0.get_inputs()[0])
+
+    graph = Module(sub_modules=childs)
+
+    assert graph.update()
+    assert not graph.update()
+    assert child4.get_outputs()[0].get_value() == 0

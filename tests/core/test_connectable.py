@@ -1,5 +1,5 @@
 import pytest
-from msys.core import Connectable, StandardType
+from msys.core import Connectable, Type
 
 
 @pytest.mark.core
@@ -7,9 +7,9 @@ from msys.core import Connectable, StandardType
 @pytest.mark.parametrize(
     "value",
     [
-        StandardType(""),
-        StandardType(1),
-        StandardType(None),
+        Type(""),
+        Type(1),
+        Type(None),
     ],
 )
 def test_create(value):
@@ -30,7 +30,7 @@ def test_create(value):
     ],
 )
 def test_set_value(value):
-    con = Connectable(StandardType(None))
+    con = Connectable(Type(None))
     con.set_value(value)
     assert con.get_value() == value
 
@@ -46,7 +46,7 @@ def test_set_value(value):
     ],
 )
 def test_set_value(value, correct):
-    con = Connectable(type=StandardType())
+    con = Connectable(type=Type())
     success = con.set_value(value)
     assert success == correct
     if success:

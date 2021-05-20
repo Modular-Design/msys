@@ -64,3 +64,30 @@ class ConnectableInterface(ABC):# metaclass=ABCMeta
     @abstractmethod
     def update(self) -> bool:
         return True
+
+
+class TypeInterface(SerializerInterface):
+    """
+    """
+
+    def is_same(self, value) -> bool:
+        pass
+
+    def get_value(self):
+        """
+        Must return representative value for connectivity-checks
+        """
+        pass
+
+    def set_value(self, value) -> bool:
+        pass
+
+    def is_changed(self) -> bool:
+        """
+        Returns True if value has changed.
+        Important for optimisation, for deciding whether to ignore or process a recipe.
+        """
+        pass
+
+    def is_connectable(self, other) -> bool:
+        pass

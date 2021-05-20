@@ -1,12 +1,12 @@
 import pytest
-from msys.core import Connectable, StandardType
+from msys.core import Connectable, Type
 
 
 @pytest.mark.core
 @pytest.mark.connection
 def test_connect_input_output():
-    in0 = Connectable(StandardType([12.90, 14]))
-    output = Connectable(StandardType([1, 3]))
+    in0 = Connectable(Type([12.90, 14]))
+    output = Connectable(Type([1, 3]))
 
     def test_disconect(ins, outs):
         Connectable.disconnect(outs, ins)
@@ -47,11 +47,11 @@ def test_connect_input_output():
 @pytest.mark.core
 @pytest.mark.connection
 def test_connect_multiple_input_output():
-    in2 = Connectable(StandardType())
-    in1 = Connectable(StandardType())
-    in0 = Connectable(StandardType())
+    in2 = Connectable(Type())
+    in1 = Connectable(Type())
+    in0 = Connectable(Type())
     inputs = [in0, in1, in2]
-    output = Connectable(StandardType([1, 3]))
+    output = Connectable(Type([1, 3]))
 
     def test_disconect(ins, outs):
         outs.disconnect_outgoing()

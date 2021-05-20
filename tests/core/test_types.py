@@ -1,5 +1,5 @@
 import pytest
-from msys.core import StandardType, TypeInterface
+from msys.core import Type, TypeInterface
 from msys.registration import get_types
 
 
@@ -24,7 +24,7 @@ from msys.registration import get_types
     ],
 )
 def test_create(name, value):
-    t = StandardType(value, name)
+    t = Type(value, name)
     assert t.get_value() == value
     assert t.type_name == name
 
@@ -34,12 +34,12 @@ def test_create(name, value):
 @pytest.mark.parametrize(
     "obj, correct",
     [
-        (StandardType(""), True),
-        (TypeInterface(), False),
+        (Type(""), True),
+        (object(), False),
     ],
 )
 def test_is_connectable(obj, correct):
-    assert StandardType("123").is_connectable(obj) == correct
+    assert Type("123").is_connectable(obj) == correct
 
 
 @pytest.mark.core
@@ -56,5 +56,5 @@ def test_is_connectable(obj, correct):
     ],
 )
 def test_create(value0, value1, same):
-    t = StandardType(value0)
+    t = Type(value0)
     assert t.is_same(value1) == same

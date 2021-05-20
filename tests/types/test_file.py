@@ -1,5 +1,5 @@
 import pytest
-from msys.core import TypeInterface, StandardType
+from msys.core import TypeInterface, Type
 from msys.types import *
 
 from .conftest import *
@@ -11,8 +11,7 @@ from .conftest import *
     "obj, correct",
     [
         (FileType(), True),
-        (StandardType(), False),
-        (TypeInterface(), False),
+        (Type(), False),
     ],
 )
 def test_is_connectable(obj, correct):
@@ -51,4 +50,6 @@ def test_serialisation(json):
     type = FileType()
     assert type.from_dict(json)
     assert type
-    assert type.to_dict() == json
+    tdict = type.to_dict()
+    del tdict["mro"]
+    assert tdict == json

@@ -8,6 +8,7 @@ class SerializableList(SerializerInterface):
         self.parent = parent
         self.flag = flag
         self.elems = []
+        self.changed = True
         for e in elems:
             self.add(e)
 
@@ -34,7 +35,9 @@ class SerializableList(SerializerInterface):
         for e in self.elems:
             if e.update():
                 changed = True
-        return changed
+        res = self.changed
+        self.changed = changed
+        return res
 
     def __setitem__(self, elemno, elem):
         self.elems[elemno] = elem
@@ -51,7 +54,7 @@ class ConnectableList(SerializableList):
     def __init__(self, parent, elems: [], flag):
         self.connections = 0
         self.length = 0
-        self.changed = 0
+        self.changed_count = 0
         super().__init__(parent, elems, flag)
         self.update_numbers()
 
@@ -66,12 +69,12 @@ class ConnectableList(SerializableList):
         return self.length
 
     def get_no_changed(self) -> int:
-        return self.changed
+        return self.changed_count
 
     def update_numbers(self) -> bool:
         self.length = len(self.elems)
         self.connections = 0
-        self.changed = 0
+        self.changed_count = 0
         for e in self.elems:
             if self.flag == ConnectableFlag.INPUT:
                 if e.get_ingoing():
@@ -80,7 +83,7 @@ class ConnectableList(SerializableList):
                 if e.get_outgoing():
                     self.connections += 1
             if e.is_changed():
-                self.changed += 1
+                self.changed_count += 1
 
     def update(self) -> bool:
         res = super().update()
