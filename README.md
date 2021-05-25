@@ -11,16 +11,20 @@ See the [Documentation](https://msys-docs.readthedocs.io/en/latest/) form more i
 
 ## Testing
 till `pip 21.3`:
-```
+```shell
 pip install --use-feature=in-tree-build -e .
 ```
 `pip 21.3+`:
-```
+```shell
 pip install -e .
 ```
 
-```
+```shell
 coverage run --source=src -m pytest && coverage report -m
+```
+
+```shell
+msys
 ```
 
 ## Capabilities
@@ -39,7 +43,7 @@ Legend:
 | Capability                           | Status |
 | ------------------------------------ | ------ |
 | Types                                | ✅     |
-| Inputs and Outputs                   | ✅     |
+| Connectables                         | ✅     |
 | Module                               | ✅     |
 | Extensions                           | 🔜     |
 | API                                  | 🔜     |

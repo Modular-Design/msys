@@ -45,11 +45,13 @@ def test_basics(options, inputs, outputs):
     "json, correct",
     [
         (
-                {'id': "1",
-                 'inputs': [],
-                 'metadata': {},
-                 'options': [],
-                 'outputs': []
+                {
+                    'id': "1",
+                    'identifier': ['1'],
+                    'inputs': [],
+                    'metadata': {},
+                    'options': [],
+                    'outputs': []
                  }, True
         ),
         ({}, False)

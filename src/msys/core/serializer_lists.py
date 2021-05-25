@@ -1,5 +1,5 @@
-from .interfaces import SerializerInterface
-from .connectable import ConnectableFlag, ConnectableInterface
+from .interfaces import SerializerInterface, TypeInterface
+from .connectable import ConnectableFlag, ConnectableInterface, Connectable
 from .unit import UnitInterface
 
 
@@ -13,9 +13,14 @@ class SerializableList(SerializerInterface):
             self.add(e)
 
     def add(self, connectable: UnitInterface):
+        if not isinstance(connectable, ConnectableInterface):
+            if isinstance(connectable, TypeInterface):
+                connectable = Connectable(connectable)
+            else:
+                return False, connectable
         connectable.parent = self.parent
         self.elems.append(connectable)
-        return True
+        return True, connectable
 
     def from_dict(self, json: dict) -> bool:
         success = True
@@ -59,8 +64,9 @@ class ConnectableList(SerializableList):
         self.update_numbers()
 
     def add(self, connectable: ConnectableInterface) -> bool:
+        res, connectable = super().add(connectable)
         connectable.set_global(self.flag)
-        return super().add(connectable)
+        return res
 
     def get_no_connected(self) -> int:
         return self.connections

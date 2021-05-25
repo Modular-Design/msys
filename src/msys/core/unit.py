@@ -154,6 +154,7 @@ class Unit(UnitInterface):
     def to_dict(self) -> dict:
         res = dict()
         res["id"] = self.id
+        res["identifier"] = self.identifier()
 
         if self.metadata:
             res.update({"metadata": self.metadata.to_dict()})
