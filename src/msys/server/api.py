@@ -1,8 +1,17 @@
-from fastapi import FastAPI, APIRouter, BackgroundTasks, Body, Path, HTTPException
+from fastapi import FastAPI, APIRouter, BackgroundTasks, Body, Path, HTTPException, status
+from fastapi_websocket_pubsub import PubSubEndpoint
 from ..core import Module, Connectable, Type
-from .routers import module
 from ..registration import *
 from typing import List, Optional, Set
+from enum import Enum
+
+
+class Topics(Enum):
+    ADD = "add"
+    CONNECT = "connect"
+    CHANGE = "change"
+    DELETE = "delete"
+    STATUS = "status"
 
 class MSYSServer(FastAPI):
     def __init__(self, module_obj=None, changeable = False):
@@ -19,6 +28,30 @@ class MSYSServer(FastAPI):
         #######################
         """
 
+        def find_object(module_id:str):
+            import json
+            module_id = module_id.replace("'","\"")
+            module_id = json.loads(module_id)
+            found = self.module.find(module_id)
+            return found
+
+
+        endpoint = PubSubEndpoint()
+        endpoint.register_route(self, "/pubsub")
+
+        async def publish(status:Topics, content:dict):
+            await endpoint.publish([status.value], content)
+
+        async def publish_parent_status(parent_id):
+            found = find_object(parent_id)
+            if found:
+                await publish(Topics.STATUS, found.to_dict())
+
+        """
+        ########################
+        Extension specific API's
+        ########################
+        """
         extensions = APIRouter(
             prefix="/extensions",
             tags=["extensions"],
@@ -31,8 +64,14 @@ class MSYSServer(FastAPI):
             json = get_extensions()
             for j in json:
                 del j["class"]
-            return json
+            return dict(extensions=json)
 
+
+        """
+        #####################
+        Module specific API's
+        #####################
+        """
         modules = APIRouter(
             prefix="/modules",
             tags=["modules"],
@@ -45,7 +84,7 @@ class MSYSServer(FastAPI):
             json = get_modules()
             for j in json:
                 del j["class"]
-            return json
+            return dict(modules=json)
 
         @modules.get("/all")
         async def all_modules():
@@ -60,22 +99,11 @@ class MSYSServer(FastAPI):
             get_modules(self.module)
             return res
 
-        """
-        #####################
-        Module specific API's
-        #####################
-        """
+
 
         @modules.get("/root")
         async def get_root_module():
             return self.module.to_dict()
-
-        def find_module(module_id:str):
-            import json
-            module_id = module_id.replace("'","\"")
-            module_id = json.loads(module_id)
-            found = self.module.find(module_id)
-            return found
 
         @modules.get("/{module_id}")
         async def get_module(
@@ -83,14 +111,14 @@ class MSYSServer(FastAPI):
                     ...,
                     example=str(self.module.identifier())
                 ),):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if isinstance(found, Module):
                 return found.to_dict()
             raise HTTPException(status_code=404, detail="Module not Found")
 
-        @modules.post("/{parent_id}")
+        @modules.post("/{parent_id}", status_code=status.HTTP_201_CREATED)
         async def add_module(
-                *,
+                background_tasks: BackgroundTasks,
                 parent_id:str = Path(
                     ...,
                     example=str(self.module.identifier())
@@ -103,8 +131,6 @@ class MSYSServer(FastAPI):
                     }
                 ),
         ):
-
-
             res = filter_package(module["package"], filter_name(module["name"], get_modules()))
             if not res:
                 raise HTTPException(status_code=404, detail="Format not found.")
@@ -114,15 +140,19 @@ class MSYSServer(FastAPI):
             if parent_id == "[]":
                 self.module = module
             else:
-                parent = find_module(parent_id)
+                parent = find_object(parent_id)
                 if not isinstance(parent, Module):
                     raise HTTPException(status_code=404, detail="Parent not Found")
                 parent.add_module(module)
 
-            return module.to_dict()
+            background_tasks.add_task(publish, Topics.ADD, module.to_dict())
+            background_tasks.add_task(publish_parent_status,parent_id)
+            await endpoint.publish(["test"],[{"data": "test"}])
+            return {"message": "Module created!"}
 
-        @modules.put("/{module_id}")
+        @modules.put("/{module_id}", status_code=status.HTTP_202_ACCEPTED)
         async def update_module(
+                background_tasks: BackgroundTasks,
                 module_id: str = Path(
                     ...,
                     example=str(self.module.identifier())
@@ -134,35 +164,47 @@ class MSYSServer(FastAPI):
                     }
                 ),
             ):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if not isinstance(found, Module):
                 raise HTTPException(status_code=404, detail="Module not Found")
             if not found.from_dict(body):
-                raise HTTPException(status_code=404, detail="Body caused Exception!")
-            return found.to_dict()
+                raise HTTPException(status_code=400, detail="Body caused Exception!")
+
+            background_tasks.add_task(publish, Topics.CHANGE, found.to_dict())
+            background_tasks.add_task(publish_parent_status, module_id)
+
+            return {"message": "Module updated!"}
 
 
-        @modules.delete("/{module_id}")
+        @modules.delete("/{module_id}", status_code=status.HTTP_204_NO_CONTENT)
         async def delete_module(
+                background_tasks: BackgroundTasks,
                 module_id: str= Path(
                     ...,
                     example=str(self.module.identifier())
                 )):
-            found = find_module(module_id)
+            found = find_object(module_id)
+
             if not isinstance(found, Module):
                 raise HTTPException(status_code=404, detail="Module not Found")
+
+            msg = found.to_dict()
+            parent_id = str(found.parent.identifier())
             del found
+            background_tasks.add_task(publish, Topics.DELETE, msg)
+            background_tasks.add_task(publish_parent_status, parent_id)
             return {"message": "Module deleted!"}
 
         @modules.get("/{module_id}/inputs")
         async def get_module_inputs(module_id:str):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if isinstance(found, Module):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
 
-        @modules.post("/{parent_id}/connect")
+        @modules.post("/{parent_id}/connect", status_code=status.HTTP_202_ACCEPTED)
         async def connect(
+                background_tasks: BackgroundTasks,
                 parent_id: str = Path(
                     ...,
                     example=str(self.module.identifier())
@@ -189,30 +231,33 @@ class MSYSServer(FastAPI):
                     }
                 )
         ):
-            parent = find_module(parent_id)
+            parent = find_object(parent_id)
             if not isinstance(parent, Module):
                 raise HTTPException(status_code=404, detail="Module not Found")
             obj_from = parent.find(body["from"])
             obj_to = parent.find(body["to"])
             if parent.connect(obj_from, obj_to):
                 outgoing = obj_from.get_outgoing()
+                msg ={}
                 if obj_to in outgoing:
-                    return {"from": body["from"], "to": body["to"]}
+                    msg = {"from": body["from"], "to": body["to"]}
                 else:
-                    return {"from": body["to"], "to": body["from"]}
+                    msg = {"from": body["to"], "to": body["from"]}
+                background_tasks.add_task(publish, Topics.CONNECT, msg)
+                background_tasks.add_task(publish_parent_status, parent_id)
             raise HTTPException(status_code=404, detail="Connection not Possible")
 
 
         @modules.put("/{module_id}/inputs/{id}")
         async def get_module_inputs(module_id: str):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if isinstance(found, Module):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
 
         @modules.get("/{module_id}/ouputs")
         async def get_module_ouputs(module_id: str):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if isinstance(found, Module):
                 return found["ouputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
@@ -224,14 +269,14 @@ class MSYSServer(FastAPI):
 
         @modules.post("/{module_id}/inputs/")
         async def get_module_inputs(module_id: str):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if isinstance(found, Module):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
 
         @modules.put("/{module_id}/inputs/{id}")
         async def get_module_inputs(module_id: str):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if isinstance(found, Module):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
@@ -243,18 +288,19 @@ class MSYSServer(FastAPI):
                     ...,
                     example=str(self.module.identifier())
                 )):
-            found = find_module(module_id)
+            found = find_object(module_id)
             if not isinstance(found, Module):
                 raise HTTPException(status_code=404, detail="Module not Found")
             background_tasks.add_task(found.update)
+            background_tasks.add_task(publish_parent_status, module_id)
             return {"message": "Process is updating in the background!"}
+
 
         """
         #####################
         Types specific API's
         #####################
         """
-
         types = APIRouter(
             prefix="/types",
             tags=["types"],
@@ -267,7 +313,7 @@ class MSYSServer(FastAPI):
             json = get_types()
             for j in json:
                 del j["class"]
-            return json
+            return dict(types=json)
 
         self.include_router(extensions)
         self.include_router(modules)

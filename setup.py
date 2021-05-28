@@ -7,7 +7,7 @@ setup(
         "pyparsing~=2.4.7",
         "setuptools~=56.0.0",
         "fastapi~=0.65",
-        "click~=8.0",
+        "click~=7.0.0",
     ],
     extra_require={
         "pytest~=6.2.3",

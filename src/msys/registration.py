@@ -13,7 +13,7 @@ def get_registered(entry_name: str):
 
     entrypoints = entry_points()
     if not entry_name in entrypoints.keys():
-        return None
+        return registered
 
     for entry in entrypoints[entry_name]:
         eclass= entry.load()
