@@ -48,6 +48,11 @@ class Module(Unit, Registrable):
         res["inputs"] = self.inputs.to_dict()
 
         res["outputs"] = self.outputs.to_dict()
+
+        res["modules"] = []
+        for module in self.modules:
+            res["modules"].append(module.to_dict())
+
         return res
 
     def from_dict(self, json: dict) -> bool:

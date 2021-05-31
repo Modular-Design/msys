@@ -3,7 +3,7 @@ from ..core import Module, Option
 class NetworkModule(Module):
     def __init__(self):
         self.__opt_connection = Option(id="connection",
-                                 title="Choose a Connection-Tye:",
+                                 title="Connection-Type:",
                                  description="""
                                                 Enter mathematical Expression!
                                                 The input value can be accessed by using the according input name.
