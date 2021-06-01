@@ -8,8 +8,6 @@ setup(
         "setuptools~=56.0",
         "fastapi~=0.65",
         "uvicorn~=0.13",
-        "fastapi_websocket_pubsub~=0.1",
-        "pyzmq~=22.0",
         "click~=7.0",
     ],
     extra_require={

@@ -1,29 +1,30 @@
 from ..core import Module, Option
 
+
 class NetworkModule(Module):
     def __init__(self):
         self.__opt_connection = Option(id="connection",
-                                 title="Connection-Type:",
-                                 description="""
+                                       title="Connection-Type:",
+                                       description="""
                                                 Enter mathematical Expression!
                                                 The input value can be accessed by using the according input name.
                                                 """,
-                                 selection=["HTTP", "HTTPS", "SSH"])
+                                       selection=["HTTP", "HTTPS", "SSH"])
 
         self.__opt_addr = Option(id="address",
-                                title="Address:",
-                                description="""
+                                 title="Address:",
+                                 description="""
                                                 Enter the host address:
                                                 Examples:
                                                 - localhost:8080
                                                 - 123.23.123:40
                                                 - msys.org/tests/test0
                                                 """,
-                                default_value="localhost")
+                                 default_value="localhost")
 
         super().__init__(options=[self.__opt_connection, self.__opt_addr])
 
-    def send_changes(self, changes:dict) -> bool:
+    def send_changes(self, changes: dict) -> bool:
         pass
 
     def get_status(self) -> dict:

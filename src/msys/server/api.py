@@ -5,7 +5,7 @@ from ..registration import *
 from typing import List, Optional, Set
 from enum import Enum
 
-import zmq
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import json
 
 
@@ -17,8 +17,27 @@ class Topics(Enum):
     STATUS = "status"
 
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+
 class MSYSServer(FastAPI):
-    def __init__(self, module_obj=None, changeable=False, port=5557):
+    def __init__(self, module_obj=None, changeable=False):
         super().__init__()
         if module_obj is None:
             self.module = Module(inputs=[Type(0)], outputs=[Type(1)])
@@ -39,9 +58,7 @@ class MSYSServer(FastAPI):
             found = self.module.find(module_id)
             return found
 
-        context = zmq.Context()
-        self.socket = context.socket(zmq.PUB)
-        self.socket.bind("tcp://*:%d" % port)
+        self.manager = ConnectionManager()
 
         # from fastapi_websocket_pubsub import PubSubEndpoint
         # endpoint = PubSubEndpoint()
@@ -49,14 +66,25 @@ class MSYSServer(FastAPI):
 
         async def publish(status: Topics, address: list, content: dict):
             # await endpoint.publish([status.value], content)
-            self.socket.send_string(status.value)
-            self.socket.send_string(json.dumps(address))
-            self.socket.send_string(json.dumps(content))
+            await self.manager.broadcast(json.dumps(dict(topic=status.value, receiver=address, content=content)))
 
         async def publish_parent_status(parent_id):
             found = find_object(parent_id)
             if found:
                 await publish(Topics.STATUS, found.identifier(), found.to_dict())
+
+        @self.websocket("/pubsub")
+        async def websocket_endpoint(websocket: WebSocket):
+            # await websocket.accept()
+            print("Connected")
+            await self.manager.connect(websocket)
+            try:
+                while True:
+                    await websocket.receive_text()
+            except WebSocketDisconnect:
+                self.manager.disconnect(websocket)
+                await self.manager.broadcast(f"Client left the Projekt")
+                print("DISCONNECTED")
 
         """
         ########################
