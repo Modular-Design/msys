@@ -3,9 +3,8 @@ import pytest
 from msys.types import FileType
 
 
-
 def test_get_registered():
-    assert get_registered("dont_exists") is None
+    assert not get_registered("dont_exists")
 
 
 def test_get_modules():

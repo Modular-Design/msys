@@ -12,6 +12,7 @@ class Module(Unit, Registrable):
         self.outputs = ConnectableList(self, outputs, ConnectableFlag.OUTPUT)
         self.options = options
         self.modules = []
+        self.connections = {}
         for module in sub_modules:
             self.add_module(module)
 
@@ -53,6 +54,8 @@ class Module(Unit, Registrable):
         for module in self.modules:
             res["modules"].append(module.to_dict())
 
+        res["connections"] = self.connections
+
         return res
 
     def from_dict(self, json: dict) -> bool:
@@ -84,7 +87,7 @@ class Module(Unit, Registrable):
 
         return found
 
-    def process(self) -> None:
+    def process(self) -> bool:
         """
         Overide this methode!
         Describs inner proccesing.
@@ -197,17 +200,27 @@ class Module(Unit, Registrable):
         """
         return True
 
-    def connect(self, obj0, obj1) -> bool:
+    def find_pair(self, obj0, obj1) -> []:
+        """
+
+        Oberride this function
+        Returns:
+            [closest_parent, input, output]
+        """
+        if obj0 is list:
+            obj0 = self.find(obj0)
+        if obj1 is list:
+            obj0 = self.find(obj1)
         if not (issubclass(obj0.__class__,
                            ConnectableInterface) and issubclass(obj1.__class__,
                                                                 ConnectableInterface)):
-            return False
+            return []
 
         id0 = obj0.identifier()
         id1 = obj1.identifier()
         len_diff = len(id1) - len(id0)
         if abs(len_diff) > 1:
-            return False
+            return []
 
         if len_diff < 0:
             obj1, obj0 = obj0, obj1
@@ -224,11 +237,11 @@ class Module(Unit, Registrable):
 
         # no same root
         if same_till == 0:
-            return False
+            return []
 
         # same level but different branches
         if len(id1) - same_till > 2:
-            return False
+            return []
 
         parent_id = id0[:same_till]
 
@@ -244,16 +257,15 @@ class Module(Unit, Registrable):
 
         obj0_type = get_type(parent_id, obj0)
         if not obj0_type:
-            return False
+            return []
 
         obj1_type = get_type(parent_id, obj1)
         if not obj1_type:
-            return False
+            return []
 
         # cant connect if both have same type (i.e. Input-Input or Output-Output)
         if obj0_type == obj1_type:
-
-            return False
+            return []
 
         input = None
         output = None
@@ -262,20 +274,30 @@ class Module(Unit, Registrable):
         else:
             input, output = obj1, obj0
 
-        def _connect(parent) -> bool:
-            Connectable.connect(output, input)
-            if not parent.is_connection_allowed():
-                Connectable.disconnect(output, input)
-                return False
-            return True
+        return [self.find(parent_id), input, output]
 
-        if parent_id != self.identifier():
-            parent = self.find(parent_id)
-            # if not parent:
-            #     return False
-            return _connect(parent)
+    @staticmethod
+    def create_connection(parent, output, input) -> bool:
+        if not parent.is_connection_allowed():
+            return False
 
-        return _connect(self)
+        Connectable.connect(output, input)
+        import json
+        key = json.dumps(output.identifier())
+        content = {json.dumps(input.identifier()): []}
+        if key in parent.connections.keys():
+            parent.connections[json.dumps(output.identifier())].update(content)
+        else:
+            parent.connections[json.dumps(output.identifier())] = content
+
+        return True
+
+    def connect(self, obj0, obj1) -> bool:
+        res = self.find_pair(obj0, obj1)
+        if not res:
+            return False
+
+        return Module.create_connection(res[0], res[2], res[1])
 
     def update(self) -> bool:
         changed = self.inputs.update()

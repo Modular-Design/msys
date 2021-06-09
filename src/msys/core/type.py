@@ -1,6 +1,7 @@
 from .interfaces import TypeInterface
 from .registrable import Registrable, get_class_info
 
+
 class Type(Registrable, TypeInterface):
     def __init__(self, default_value=""):
         super().__init__()

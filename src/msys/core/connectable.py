@@ -20,6 +20,18 @@ class Connectable(Unit, ConnectableInterface):
         self.outputs = []
         self.flag = None
 
+    def to_dict(self) -> dict:
+        res = super().to_dict()
+        res["type"] = self.ctype.to_dict()
+        if self.input:
+            res["ingoing"] = self.input().id
+        if self.outputs:
+            res["outpoing"] = [o().id for o in self.outputs]
+        return res
+
+    def from_dict(self, json: dict) -> bool:
+        pass
+
     def set_global(self, flag: ConnectableFlag):
         self.flag = flag
 

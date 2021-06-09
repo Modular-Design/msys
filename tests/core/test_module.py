@@ -51,7 +51,9 @@ def test_basics(options, inputs, outputs):
                     'inputs': [],
                     'metadata': {},
                     'options': [],
-                    'outputs': []
+                    'outputs': [],
+                    'modules':[],
+                    'connections':{}
                  }, True
         ),
         ({}, False)

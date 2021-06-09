@@ -66,7 +66,9 @@ class MSYSServer(FastAPI):
 
         async def publish(status: Topics, address: list, content: dict):
             # await endpoint.publish([status.value], content)
-            await self.manager.broadcast(json.dumps(dict(topic=status.value, receiver=address, content=content)))
+            msg = dict(topic=status.value, receiver=address, content=content)
+            # print(msg)
+            await self.manager.broadcast(json.dumps(msg))
 
         async def publish_parent_status(parent_id):
             found = find_object(parent_id)
@@ -206,7 +208,7 @@ class MSYSServer(FastAPI):
                 raise HTTPException(status_code=400, detail="Body caused Exception!")
 
             background_tasks.add_task(publish, Topics.CHANGE, json.loads(module_id), found.to_dict())
-            background_tasks.add_task(publish_parent_status, module_id)
+            # background_tasks.add_task(publish_parent_status, module_id)
 
             return {"message": "Module updated!"}
 
@@ -236,7 +238,7 @@ class MSYSServer(FastAPI):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
 
-        @modules.post("/{parent_id}/connect", status_code=status.HTTP_202_ACCEPTED)
+        @modules.post("/connect", status_code=status.HTTP_202_ACCEPTED)
         async def connect(
                 background_tasks: BackgroundTasks,
                 parent_id: str = Path(
@@ -265,20 +267,17 @@ class MSYSServer(FastAPI):
                     }
                 )
         ):
-            parent = find_object(parent_id)
+            res = self.module.find_pair(body["from"], body["to"])
+            parent = res[0]
             if not isinstance(parent, Module):
                 raise HTTPException(status_code=404, detail="Module not Found")
-            obj_from = parent.find(body["from"])
-            obj_to = parent.find(body["to"])
-            if parent.connect(obj_from, obj_to):
-                outgoing = obj_from.get_outgoing()
-                msg = {}
-                if obj_to in outgoing:
-                    msg = {"from": body["from"], "to": body["to"]}
-                else:
-                    msg = {"from": body["to"], "to": body["from"]}
-                background_tasks.add_task(publish, Topics.CONNECT, json.loads(parent_id), msg)
-                background_tasks.add_task(publish_parent_status, parent_id)
+            input = res[1]
+            output = res[2]
+            if Module.create_connection(parent, output, input):
+                msg = {"from": output, "to": input}
+
+                background_tasks.add_task(publish, Topics.CONNECT, json.loads(parent.identifier()), msg)
+                background_tasks.add_task(publish_parent_status, parent.identifier())
             raise HTTPException(status_code=404, detail="Connection not Possible")
 
         @modules.put("/{module_id}/inputs/{id}")
