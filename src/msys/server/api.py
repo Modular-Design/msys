@@ -184,7 +184,7 @@ class MSYSServer(FastAPI):
                 parent.add_module(module)
 
             background_tasks.add_task(publish, Topics.ADD, json.loads(parent_id), module.to_dict())
-            background_tasks.add_task(publish_parent_status, parent_id)
+            # background_tasks.add_task(publish_parent_status, parent_id)
             return {"message": "Module created!"}
 
         @modules.put("/{module_id}", status_code=status.HTTP_202_ACCEPTED)
@@ -212,7 +212,7 @@ class MSYSServer(FastAPI):
 
             return {"message": "Module updated!"}
 
-        @modules.delete("/{module_id}", status_code=status.HTTP_204_NO_CONTENT)
+        @modules.delete("/delete/{module_id}", status_code=status.HTTP_202_ACCEPTED)
         async def delete_module(
                 background_tasks: BackgroundTasks,
                 module_id: str = Path(
@@ -226,8 +226,8 @@ class MSYSServer(FastAPI):
 
             msg = found.to_dict()
             parent_id = str(found.parent.identifier())
-            del found
-            background_tasks.add_task(publish, Topics.DELETE, json.loads(parent_id), msg)
+            found.delete()
+            # background_tasks.add_task(publish, Topics.DELETE, json.loads(parent_id), msg)
             background_tasks.add_task(publish_parent_status, parent_id)
             return {"message": "Module deleted!"}
 
@@ -312,7 +312,7 @@ class MSYSServer(FastAPI):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
 
-        @modules.put("/{module_id}/update")
+        @modules.put("/update/{module_id}")
         async def update_module(
                 background_tasks: BackgroundTasks,
                 module_id: str = Path(

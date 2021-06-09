@@ -3,6 +3,7 @@ from .serializer_lists import ConnectableList
 from .connectable import ConnectableFlag, Connectable
 from .registrable import Registrable
 from .unit import Unit
+from .connection import Connection
 import uuid
 
 
@@ -12,7 +13,7 @@ class Module(Unit, Registrable):
         self.outputs = ConnectableList(self, outputs, ConnectableFlag.OUTPUT)
         self.options = options
         self.modules = []
-        self.connections = {}
+        self.connections = []
         for module in sub_modules:
             self.add_module(module)
 
@@ -54,7 +55,17 @@ class Module(Unit, Registrable):
         for module in self.modules:
             res["modules"].append(module.to_dict())
 
-        res["connections"] = self.connections
+        res["connections"] = {}
+        for c in self.connections:
+            json = c.to_dict()
+            if json is None:
+                continue
+            key = json.keys()[0]
+            json.values
+            if key in res["connections"].keys():
+                res["connections"][key].update(list(json.values())[0])
+            else:
+                res["connections"].update(json)
 
         return res
 
@@ -282,14 +293,8 @@ class Module(Unit, Registrable):
             return False
 
         Connectable.connect(output, input)
-        import json
-        key = json.dumps(output.identifier())
-        content = {json.dumps(input.identifier()): []}
-        if key in parent.connections.keys():
-            parent.connections[json.dumps(output.identifier())].update(content)
-        else:
-            parent.connections[json.dumps(output.identifier())] = content
 
+        parent.connections.append(Connection(parent, output, input))
         return True
 
     def connect(self, obj0, obj1) -> bool:
@@ -307,3 +312,7 @@ class Module(Unit, Registrable):
 
         changed = self.outputs.update()
         return changed
+
+    def delete(self):
+        if self.parent is not None:
+            self.parent.modules.remove(self)

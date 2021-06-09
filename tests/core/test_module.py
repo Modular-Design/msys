@@ -179,6 +179,29 @@ def test_update_child():
     assert parent.update()
 
 
+def test_delete():
+    child0_12 = Module(id=12,
+                       inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                       outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)], )
+    child0 = Module(sub_modules=[child0_12], id=0)
+
+    child1_5 = Module(id=5,
+                      inputs=[Connectable(Type(0), 0), Connectable(Type(0), 1)],
+                      outputs=[Connectable(Type(0), 2), Connectable(Type(0), 3)], )
+    child1 = Module(sub_modules=[child1_5], id=1)
+
+    parent = Module(sub_modules=[child0, child1],
+                    id=0,
+                    inputs=[Connectable(Type(0), 3), Connectable(Type(0), 4)],
+                    outputs=[Connectable(Type(0), 5), Connectable(Type(0), 5)])
+
+    identifier = child0.identifier()
+
+    obj = parent.find(identifier)
+    obj.delete()
+    assert parent.find(identifier) is None
+
+
 def test_is_tree_positive():
     """
 
