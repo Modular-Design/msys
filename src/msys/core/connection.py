@@ -1,6 +1,7 @@
 import weakref
 from .interfaces import SerializerInterface
 from .connectable import Connectable
+import json
 
 class Connection(SerializerInterface):
     def __init__(self, parent = None, output = None, input = None):
@@ -17,7 +18,7 @@ class Connection(SerializerInterface):
         if input is None or output is None:
             del self
             return None
-        return {json.dumps(output.identifier()): {input.identifier(): self.meta}}
+        return {json.dumps(output.identifier()): {json.dumps(input.identifier()): self.meta}}
 
 
     def from_dict(self, json: dict) -> bool:

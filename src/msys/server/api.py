@@ -51,12 +51,19 @@ class MSYSServer(FastAPI):
         #######################
         """
 
-        def find_object(module_id: str):
-            import json
-            module_id = module_id.replace("'", "\"")
-            module_id = json.loads(module_id)
-            found = self.module.find(module_id)
-            return found
+        def find_object(module_id):
+            if isinstance(module_id, str):
+                print("str")
+                import json
+                module_id = module_id.replace("'", "\"")
+                module_id = json.loads(module_id)
+
+            print(module_id)
+            if isinstance(module_id, list):
+                print("list")
+                module_id = self.module.find(module_id)
+
+            return module_id
 
         self.manager = ConnectionManager()
 
@@ -154,6 +161,52 @@ class MSYSServer(FastAPI):
                 return found.to_dict()
             raise HTTPException(status_code=404, detail="Module not Found")
 
+        @modules.post("/connect", status_code=status.HTTP_202_ACCEPTED)
+        async def connect(
+                background_tasks: BackgroundTasks,
+                body=Body(
+                    ...,
+                    examples={
+                        "lazy": {
+                            "summary": "A lazy example",
+                            "description": "A **lazy** connection works does not care about right direction.",
+                            "value": {
+                                "from": self.module.inputs[0].identifier(),
+                                "to": self.module.outputs[0].identifier(),
+                            },
+                        },
+                        "normal": {
+                            "summary": "A normal example",
+                            "description": "A **normal** connection works from output to input.",
+                            "value": {
+                                "from": self.module.outputs[0].identifier(),
+                                "to": self.module.inputs[0].identifier(),
+                            },
+                        },
+                    }
+                )
+        ):
+            print("found "+ str(body))
+            res = self.module.find_pair(body["from"], body["to"])
+            if len(res) != 3:
+                raise HTTPException(status_code=404, detail="Not Connectable")
+            parent = res[0]
+
+            if not isinstance(parent, Module):
+                raise HTTPException(status_code=404, detail="Module not Found")
+            input = res[1]
+            output = res[2]
+
+            print("Connect")
+
+            if Module.create_connection(parent, output, input):
+                msg = {"from": output.identifier(), "to": input.identifier()}
+
+                background_tasks.add_task(publish, Topics.CONNECT, json.dumps(parent.identifier()), msg)
+                background_tasks.add_task(publish_parent_status, parent)
+                return {"message": "Successfull Connection!"}
+            raise HTTPException(status_code=404, detail="Connection not Possible")
+
         @modules.post("/{parent_id}", status_code=status.HTTP_201_CREATED)
         async def add_module(
                 background_tasks: BackgroundTasks,
@@ -237,48 +290,6 @@ class MSYSServer(FastAPI):
             if isinstance(found, Module):
                 return found["inputs"]
             raise HTTPException(status_code=404, detail="Module not Found")
-
-        @modules.post("/connect", status_code=status.HTTP_202_ACCEPTED)
-        async def connect(
-                background_tasks: BackgroundTasks,
-                parent_id: str = Path(
-                    ...,
-                    example=str(self.module.identifier())
-                ),
-                body=Body(
-                    ...,
-                    examples={
-                        "lazy": {
-                            "summary": "A lazy example",
-                            "description": "A **lazy** connection works does not care about right direction.",
-                            "value": {
-                                "from": self.module.inputs[0].identifier(),
-                                "to": self.module.outputs[0].identifier(),
-                            },
-                        },
-                        "normal": {
-                            "summary": "A normal example",
-                            "description": "A **normal** connection works from output to input.",
-                            "value": {
-                                "from": self.module.outputs[0].identifier(),
-                                "to": self.module.inputs[0].identifier(),
-                            },
-                        },
-                    }
-                )
-        ):
-            res = self.module.find_pair(body["from"], body["to"])
-            parent = res[0]
-            if not isinstance(parent, Module):
-                raise HTTPException(status_code=404, detail="Module not Found")
-            input = res[1]
-            output = res[2]
-            if Module.create_connection(parent, output, input):
-                msg = {"from": output, "to": input}
-
-                background_tasks.add_task(publish, Topics.CONNECT, json.loads(parent.identifier()), msg)
-                background_tasks.add_task(publish_parent_status, parent.identifier())
-            raise HTTPException(status_code=404, detail="Connection not Possible")
 
         @modules.put("/{module_id}/inputs/{id}")
         async def get_module_inputs(module_id: str):

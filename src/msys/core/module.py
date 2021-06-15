@@ -60,7 +60,7 @@ class Module(Unit, Registrable):
             json = c.to_dict()
             if json is None:
                 continue
-            key = json.keys()[0]
+            key = list(json.keys())[0]
             json.values
             if key in res["connections"].keys():
                 res["connections"][key].update(list(json.values())[0])
@@ -218,10 +218,13 @@ class Module(Unit, Registrable):
         Returns:
             [closest_parent, input, output]
         """
-        if obj0 is list:
+        print(obj0)
+        if isinstance(obj0, list):
             obj0 = self.find(obj0)
-        if obj1 is list:
-            obj0 = self.find(obj1)
+
+        print(obj1)
+        if isinstance(obj1, list):
+            obj1 = self.find(obj1)
         if not (issubclass(obj0.__class__,
                            ConnectableInterface) and issubclass(obj1.__class__,
                                                                 ConnectableInterface)):
@@ -230,6 +233,7 @@ class Module(Unit, Registrable):
         id0 = obj0.identifier()
         id1 = obj1.identifier()
         len_diff = len(id1) - len(id0)
+
         if abs(len_diff) > 1:
             return []
 
@@ -273,6 +277,8 @@ class Module(Unit, Registrable):
         obj1_type = get_type(parent_id, obj1)
         if not obj1_type:
             return []
+
+        print (str(obj0_type) + " | "+ str(obj1_type))
 
         # cant connect if both have same type (i.e. Input-Input or Output-Output)
         if obj0_type == obj1_type:
