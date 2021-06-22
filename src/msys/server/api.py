@@ -75,6 +75,7 @@ class MSYSServer(FastAPI):
             # await endpoint.publish([status.value], content)
             msg = dict(topic=status.value, receiver=address, content=content)
             # print(msg)
+            print("[API]: " + json.dumps(msg))
             await self.manager.broadcast(json.dumps(msg))
 
         async def publish_parent_status(parent_id):
@@ -187,15 +188,15 @@ class MSYSServer(FastAPI):
                 )
         ):
             print("found "+ str(body))
-            res = self.module.find_pair(body["from"], body["to"])
+            res = Connection.find_connection(self.module, body["from"], body["to"])
             if len(res) != 3:
                 raise HTTPException(status_code=404, detail="Not Connectable")
-            parent = res[0]
+            parent = res[2]
 
             if not isinstance(parent, Module):
                 raise HTTPException(status_code=404, detail="Module not Found")
             input = res[1]
-            output = res[2]
+            output = res[0]
 
             print("Connect")
 

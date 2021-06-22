@@ -50,11 +50,9 @@ class Connection(UUnit):
         Returns:
             [closest_parent, input, output]
         """
-        print(obj0)
         if isinstance(obj0, list):
             obj0 = root.find(obj0)
 
-        print(obj1)
         if isinstance(obj1, list):
             obj1 = root.find(obj1)
         if not (issubclass(obj0.__class__,
@@ -124,9 +122,9 @@ class Connection(UUnit):
         return [output, input, root.find(parent_id)]
 
     @staticmethod
-    def connect(parent, output, input) -> bool:
+    def search_connect(parent, output, input) -> bool:
         res = Connection.find_connection(parent, output, input)
-        return Connection.connect(res[0], res[1])
+        return Connection.connect(res[0], res[1], res[2])
 
     @staticmethod
     def connect(output: ConnectableInterface, input : ConnectableInterface, parent=None) -> bool:
@@ -157,7 +155,7 @@ class Connection(UUnit):
         return True
 
     @staticmethod
-    def disconnect(parent, output, input) -> bool:
+    def search_disconnect(parent, output, input) -> bool:
         res = Connection.find_connection(parent, output, input)
         return Connection.disconnect(res[0], res[1])
 

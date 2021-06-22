@@ -9,6 +9,25 @@
 
 See the [Documentation](https://msys-docs.readthedocs.io/en/latest/) form more information.
 
+## Usage
+Launch server with:
+```shell
+msys
+```
+or
+```shell
+msys serve
+```
+further details with:
+```shell
+msys serve --help
+```
+
+list all commands with:
+```shell
+msys --help
+```
+
 ## Testing
 till `pip 21.3`:
 ```shell
@@ -23,8 +42,9 @@ pip install -e .
 coverage run --source=src -m pytest && coverage report -m
 ```
 
+Check registered modules and launch server:
 ```shell
-msys
+msys modules serve
 ```
 
 ## Capabilities
