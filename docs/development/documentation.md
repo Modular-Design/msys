@@ -72,3 +72,9 @@ To see the source code documentation while coding, see the following example:
 from reporting.core import *
 help(Input)
 ````
+
+## Guidelines for Commits
+
+- Always checks your grammar
+
+For further details see [here](https://herewecode.io/blog/a-beginners-guide-to-git-how-to-write-a-good-commit-message/).

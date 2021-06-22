@@ -1,6 +1,6 @@
 import click
 import uvicorn
-from ..server import MSYSServer
+from ..server.server import MSYSServer
 from ..registration import *
 
 server = MSYSServer()

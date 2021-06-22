@@ -1,9 +1,7 @@
 from msys.core.registrable import get_class_info, set_class_info
 
 
-def get_registered(entry_name: str):
-    registered = []
-
+def load_entrypoints(entry_name: str):
     # search in entry points
     import sys
     if sys.version_info < (3, 8):
@@ -13,7 +11,17 @@ def get_registered(entry_name: str):
 
     entrypoints = entry_points()
     if not entry_name in entrypoints.keys():
-        return registered
+        return None
+    return entrypoints[entry_name]
+
+
+
+def get_registered(entry_name: str):
+    entrypoints = load_entrypoints()
+    registered = []
+
+    if not entrypoints:
+        return entrypoints
 
     for entry in entrypoints[entry_name]:
         eclass= entry.load()

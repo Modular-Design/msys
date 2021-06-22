@@ -3,16 +3,20 @@ from .registrable import Registrable, get_class_info
 
 
 class Type(Registrable, TypeInterface):
-    def __init__(self, default_value=""):
+    def __init__(self, default_value="", value=None):
         super().__init__()
         self.changed = True
-        self.value = default_value
+        self.default_value = default_value
+        if value is None:
+            value = self.default_value
+        self.value = value
         self.mro = []
         parents = self.__class__.__mro__
         for parent in parents:
             res = get_class_info(parent)
             if res["package"]:
                 self.mro.append(res)
+        self.load_funcions(self)
 
     def is_same(self, value) -> bool:
         return self.value == value
@@ -50,3 +54,8 @@ class Type(Registrable, TypeInterface):
             return False
         self.value = json["value"]
         return True
+
+    def load_funcions(self):
+
+        self.__class__
+
