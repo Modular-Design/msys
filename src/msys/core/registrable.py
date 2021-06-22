@@ -1,4 +1,5 @@
-from .interfaces import SerializerInterface
+from .serializer import SerializerInterface
+
 
 class Registrable(SerializerInterface):
     def __init__(self):
@@ -18,7 +19,7 @@ class Registrable(SerializerInterface):
         else:
             return {}
 
-    def from_dict(self, json: dict) -> bool:
+    def from_dict(self, json: dict, safe=False) -> bool:
         if "registered" in json.keys():
             res = json["registered"]
             if "name" in res.keys():
@@ -30,6 +31,9 @@ class Registrable(SerializerInterface):
 
         return False
 
+
+
+
 def get_class_info(rclass):
     import re
     patern = r"<class '(.*?)'>"
@@ -40,6 +44,7 @@ def get_class_info(rclass):
         return dict(package=res[0], name=res[-1])
     else:
         return dict(package=[], name=res[0])
+
 
 def set_class_info(rclass, info) -> bool:
     if not issubclass(rclass, Registrable):

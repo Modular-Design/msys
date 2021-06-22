@@ -1,7 +1,6 @@
-from .interfaces import SerializerInterface, TypeInterface
+from .serializer import  SerializerInterface
 from .connectable import ConnectableFlag, ConnectableInterface, Connectable
-from .unit import UnitInterface
-
+from .interfaces import UnitInterface, TypeInterface
 
 class SerializableList(SerializerInterface):
     def __init__(self, parent,  elems: [], flag: ConnectableFlag):
@@ -22,10 +21,10 @@ class SerializableList(SerializerInterface):
         self.elems.append(connectable)
         return True, connectable
 
-    def from_dict(self, json: dict) -> bool:
+    def from_dict(self, json: dict, safe=False) -> bool:
         success = True
         for i in range(len(json)):
-            if not self.elems[i].from_dict(json[i]):
+            if not self.elems[i].from_dict(json[i], safe):
                 success = False
         return success
 

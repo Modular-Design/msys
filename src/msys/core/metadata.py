@@ -1,5 +1,4 @@
-from .interfaces import SerializerInterface, includes
-
+from .serializer import Serializer, SerializerInterface, includes
 
 class Point(SerializerInterface):
     def __init__(self, x=0.0, y=0.0):
@@ -17,8 +16,8 @@ class Point(SerializerInterface):
         return self.__dict__
 
 
-class Metadata(SerializerInterface):
-    def __init__(self, name="", color="", pos=None, inverted=False):
+class Metadata(Serializer):
+    def __init__(self, name="", color="", pos=None, inverted=False, protected=False):
         self.name = name
         self.color = color
         self.pos = pos

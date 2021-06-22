@@ -1,9 +1,10 @@
-from .interfaces import SerializerInterface, includes
+from .serializer import Serializer, includes
 import uuid
 
 
-class Option(SerializerInterface):
+class Option(Serializer):
     def __init__(self, id=str(uuid.uuid4()), title="", default_value=[], description="", selection=[], single=True):
+        super().__init__()
         self.id = id
         self.title = title
         self.description = description
@@ -17,7 +18,7 @@ class Option(SerializerInterface):
             self.value = []
 
     def to_dict(self) -> dict:
-        res = dict()
+        res = super().to_dict()
         if self.id:
             res.update({"id": self.id})
         if self.title:
@@ -31,7 +32,10 @@ class Option(SerializerInterface):
 
         return res
 
-    def from_dict(self, json: dict) -> bool:
+    def from_dict(self, json: dict, safe=False) -> bool:
+        if not super().from_dict(json, safe):
+            return False
+
         if "id" in json.keys():
             self.id = json["id"]
 

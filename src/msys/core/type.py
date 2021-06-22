@@ -43,8 +43,7 @@ class Type(Registrable, TypeInterface):
             res["mro"] = self.mro
         return res
 
-    def from_dict(self, json: dict) -> bool:
-        found = super().from_dict(json)
+    def from_dict(self, json: dict, safe=False) -> bool:
         if "mro" in json.keys():
             self.mro = json["mro"]
         if "value" not in json.keys():

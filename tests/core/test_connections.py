@@ -1,5 +1,5 @@
 import pytest
-from msys.core import Connectable, Type
+from msys.core import Connectable, Type, Connection
 
 
 @pytest.mark.core
@@ -9,12 +9,12 @@ def test_connect_input_output():
     output = Connectable(Type([1, 3]))
 
     def test_disconect(ins, outs):
-        Connectable.disconnect(outs, ins)
+        Connection.disconnect(outs, ins)
         ins.set_value(1)
         assert outs.get_value() != ins.get_value()
 
     def test_connect(ins, outs):
-        Connectable.connect(outs, ins)
+        Connection.connect(outs, ins)
         assert outs.get_value() == ins.get_value()
 
     def test_connect_ingoing(ins, outs):

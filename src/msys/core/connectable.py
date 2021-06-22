@@ -1,8 +1,7 @@
 from .interfaces import ConnectableInterface
 from enum import Enum
 import weakref
-from .unit import Unit
-import uuid
+from .unit import UUnit
 
 
 class ConnectableFlag(Enum):
@@ -10,10 +9,8 @@ class ConnectableFlag(Enum):
     OUTPUT = 1
 
 
-class Connectable(Unit, ConnectableInterface):
+class Connectable(UUnit, ConnectableInterface):
     def __init__(self, type, id=None):
-        if id is None:
-            id = str(uuid.uuid4())
         super().__init__(id)
         self.ctype = type
         self.input = None
@@ -29,7 +26,7 @@ class Connectable(Unit, ConnectableInterface):
             res["outpoing"] = [o().id for o in self.outputs]
         return res
 
-    def from_dict(self, json: dict) -> bool:
+    def from_dict(self, json: dict, safe=False) -> bool:
         pass
 
     def set_global(self, flag: ConnectableFlag):
@@ -74,25 +71,29 @@ class Connectable(Unit, ConnectableInterface):
 
     def connect_ingoing(self, output) -> bool:
         if output:
-            return Connectable.connect(output, self)
+            from .connection import Connection
+            return Connection.connect(output, self)
         return False
 
     def connect_outgoing(self, input) -> bool:
         if input:
-            return Connectable.connect(self, input)
+            from .connection import Connection
+            return Connection.connect(self, input)
         return False
 
     def connect_multiple_outgoing(self, inputs: list) -> bool:
         worked = True
         if inputs:
             for input in inputs:
-                if not Connectable.connect(self, input):
+                from .connection import Connection
+                if not Connection.connect(self, input):
                     worked = False
         return worked
 
     def disconnect_ingoing(self) -> bool:
         if self.get_ingoing():
-            return Connectable.disconnect(self.get_ingoing(), self)
+            from .connection import Connection
+            return Connection.disconnect(self.get_ingoing(), self)
         return True
 
     def disconnect_outgoing(self) -> bool:
@@ -100,7 +101,8 @@ class Connectable(Unit, ConnectableInterface):
         if self.get_outgoing():
             for input in self.get_outgoing():
                 print(input)
-                if not Connectable.disconnect(self, input):
+                from .connection import Connection
+                if not Connection.disconnect(self, input):
                     success = False
         return success
 
@@ -112,35 +114,3 @@ class Connectable(Unit, ConnectableInterface):
     def update(self) -> bool:
         result = self.is_changed()
         return result
-
-    @staticmethod
-    def connect(output: ConnectableInterface, input : ConnectableInterface) -> bool:
-        if not (issubclass(input.__class__, ConnectableInterface) and issubclass(output.__class__,
-                                                                                 ConnectableInterface)):
-            return False
-
-        if not input.get_type().is_connectable(output.get_type()):
-            return False
-
-        ingoing = input.get_ingoing()
-        if ingoing:
-            if not input.disconnect_ingoing():
-                return False
-        input.input = weakref.ref(output)
-
-        outgoing = output.get_outgoing()
-        if not input in outgoing:
-            output.outputs.append(weakref.ref(input))
-        return True
-
-    @staticmethod
-    def disconnect(output: ConnectableInterface,  input:ConnectableInterface) -> bool:
-        if not (issubclass(Connectable, input.__class__) and issubclass(Connectable, output.__class__)):
-            return False
-
-        if not input in output.get_outgoing():
-            return False
-        input.input = None
-        index = output.get_outgoing().index(input)
-        output.outputs.pop(index)
-        return True

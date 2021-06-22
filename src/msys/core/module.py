@@ -1,13 +1,12 @@
-from .interfaces import ConnectableInterface
-from .serializer_lists import ConnectableList
+from .serializer_collections import ConnectableList
 from .connectable import ConnectableFlag, Connectable
 from .registrable import Registrable
-from .unit import Unit
+from .unit import UUnit
 from .connection import Connection
-import uuid
 
 
-class Module(Unit, Registrable):
+
+class Module(UUnit, Registrable):
     def __init__(self, inputs=[], outputs=[], options=[], sub_modules=[], id=None):
         self.inputs = ConnectableList(self, inputs, ConnectableFlag.INPUT)
         self.outputs = ConnectableList(self, outputs, ConnectableFlag.OUTPUT)
@@ -17,8 +16,6 @@ class Module(Unit, Registrable):
         for module in sub_modules:
             self.add_module(module)
 
-        if id is None:
-            id = str(uuid.uuid4())
         super().__init__(id)
         Registrable.__init__(self)
 
@@ -32,48 +29,56 @@ class Module(Unit, Registrable):
         return self.options
 
     def get_childs(self) -> []:
-        return self.inputs[:] + self.outputs[:] + self.modules
+        return self.inputs[:] + self.outputs[:] + self.modules + self.connections
 
-    def add_module(self, module: Unit):
+    def add_module(self, module: UUnit):
         module.parent = self
         self.modules.append(module)
 
+    def set_inverted(self, inverted: bool):
+        super().set_inverted(inverted)
+        for i in inputs:
+            i.set_inverted(inverted)
+        for o in outputs:
+            o.set_inverted(inverted)
+
     def to_dict(self) -> dict:
-        res = super().to_dict()
+        res = UUnit.to_dict(self)
         res.update(Registrable.to_dict(self))
 
-        options = []
-        for o in self.options:
-            options.append(o.to_dict())
-        res["options"] = options
+        if self.options:
+            options = []
+            for o in self.options:
+                options.append(o.to_dict())
+            res["options"] = options
 
-        res["inputs"] = self.inputs.to_dict()
+        if self.inputs[:]:
+            res["inputs"] = self.inputs.to_dict()
 
-        res["outputs"] = self.outputs.to_dict()
+        if self.outputs[:]:
+            res["outputs"] = self.outputs.to_dict()
 
-        res["modules"] = []
-        for module in self.modules:
-            res["modules"].append(module.to_dict())
+        if self.modules:
+            res["modules"] = []
+            for module in self.modules:
+                res["modules"].append(module.to_dict())
 
-        res["connections"] = {}
-        for c in self.connections:
-            json = c.to_dict()
-            if json is None:
-                continue
-            key = list(json.keys())[0]
-            json.values
-            if key in res["connections"].keys():
-                res["connections"][key].update(list(json.values())[0])
-            else:
-                res["connections"].update(json)
+        if self.connections:
+            res["connections"] = {}
+            for c in self.connections:
+                json = c.to_dict()
+                if json is None:
+                    continue
+                key = list(json.keys())[0]
+                json.values
+                if key in res["connections"].keys():
+                    res["connections"][key].update(list(json.values())[0])
+                else:
+                    res["connections"].update(json)
 
         return res
 
-    def from_dict(self, json: dict) -> bool:
-        found = super().from_dict(json)
-        if Registrable.from_dict(self, json):
-            found = True
-
+    def from_dict(self, json: dict, safe=False) -> bool:
         def _from_dict(key, lists, changeable=False):
             connectables = json[key]
             for new_c in connectables:
@@ -81,22 +86,28 @@ class Module(Unit, Registrable):
                     break
                 for old_c in lists:
                     if new_c["id"] == old_c.id:
-                        old_c.from_dict(new_c)
+                        old_c.from_dict(new_c, safe)
                         break
+
+        if safe and parent.is_protected():
+            return False
 
         if "options" in json.keys():
             _from_dict("options", self.options)
-            found = True
+
+        if not UUnit.from_dict(self, json, safe=False):
+            return False
+
+        Registrable.from_dict(self, json)
+
 
         if "inputs" in json.keys():
             self.inputs.from_dict(json["inputs"])
-            found = True
 
         if "outputs" in json.keys():
             self.outputs.from_dict(json["outputs"])
-            found = True
 
-        return found
+        return True
 
     def process(self) -> bool:
         """
@@ -202,113 +213,13 @@ class Module(Unit, Registrable):
                 return False
         return True
 
-    def is_connection_allowed(self) -> bool:
-        """
-
-        Oberride this function
-        Returns:
-
-        """
-        return True
-
-    def find_pair(self, obj0, obj1) -> []:
-        """
-
-        Oberride this function
-        Returns:
-            [closest_parent, input, output]
-        """
-        print(obj0)
-        if isinstance(obj0, list):
-            obj0 = self.find(obj0)
-
-        print(obj1)
-        if isinstance(obj1, list):
-            obj1 = self.find(obj1)
-        if not (issubclass(obj0.__class__,
-                           ConnectableInterface) and issubclass(obj1.__class__,
-                                                                ConnectableInterface)):
-            return []
-
-        id0 = obj0.identifier()
-        id1 = obj1.identifier()
-        len_diff = len(id1) - len(id0)
-
-        if abs(len_diff) > 1:
-            return []
-
-        if len_diff < 0:
-            obj1, obj0 = obj0, obj1
-            id0 = obj0.identifier()
-            id1 = obj1.identifier()
-        # obj0 is higher or level with obj1
-
-        # number of same levels
-        same_till = 0
-        for i in range(len(id0)):
-            if id0[i] != id1[i]:
-                break
-            same_till += 1
-
-        # no same root
-        if same_till == 0:
-            return []
-
-        # same level but different branches
-        if len(id1) - same_till > 2:
-            return []
-
-        parent_id = id0[:same_till]
-
-        # determine which one is input and which one is output
-        def get_type(p_id, obj):
-            po_diff = len(obj.identifier()) - len(p_id)
-            if po_diff == 1:
-                return obj.get_local()
-            elif po_diff == 2:
-                return obj.get_global()
-            else:
-                return None
-
-        obj0_type = get_type(parent_id, obj0)
-        if not obj0_type:
-            return []
-
-        obj1_type = get_type(parent_id, obj1)
-        if not obj1_type:
-            return []
-
-        print (str(obj0_type) + " | "+ str(obj1_type))
-
-        # cant connect if both have same type (i.e. Input-Input or Output-Output)
-        if obj0_type == obj1_type:
-            return []
-
-        input = None
-        output = None
-        if obj0_type == ConnectableFlag.INPUT:
-            input, output = obj0, obj1
-        else:
-            input, output = obj1, obj0
-
-        return [self.find(parent_id), input, output]
-
-    @staticmethod
-    def create_connection(parent, output, input) -> bool:
-        if not parent.is_connection_allowed():
-            return False
-
-        Connectable.connect(output, input)
-
-        parent.connections.append(Connection(parent, output, input))
-        return True
 
     def connect(self, obj0, obj1) -> bool:
-        res = self.find_pair(obj0, obj1)
+        res = Connection.find_connection(self, obj0, obj1)
         if not res:
             return False
 
-        return Module.create_connection(res[0], res[2], res[1])
+        return Connection.connect(res[0], res[1], res[2])
 
     def update(self) -> bool:
         changed = self.inputs.update()

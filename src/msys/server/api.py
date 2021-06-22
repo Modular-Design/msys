@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, BackgroundTasks, Body, Path, HTTPException, status
 
-from ..core import Module, Connectable, Type
+from ..core import Module, Type, Connection
 from ..registration import *
 from typing import List, Optional, Set
 from enum import Enum
@@ -80,7 +80,7 @@ class MSYSServer(FastAPI):
         async def publish_parent_status(parent_id):
             found = find_object(parent_id)
             if found:
-                await publish(Topics.STATUS, found.identifier(), found.to_dict())
+                await publish(Topics.STATUS, found.complete_id(), found.to_dict())
 
         @self.websocket("/pubsub")
         async def websocket_endpoint(websocket: WebSocket):
@@ -154,7 +154,7 @@ class MSYSServer(FastAPI):
         async def get_module(
                 module_id: str = Path(
                     ...,
-                    example=str(self.module.identifier())
+                    example=str(self.module.complete_id())
                 ), ):
             found = find_object(module_id)
             if isinstance(found, Module):
@@ -171,16 +171,16 @@ class MSYSServer(FastAPI):
                             "summary": "A lazy example",
                             "description": "A **lazy** connection works does not care about right direction.",
                             "value": {
-                                "from": self.module.inputs[0].identifier(),
-                                "to": self.module.outputs[0].identifier(),
+                                "from": self.module.inputs[0].complete_id(),
+                                "to": self.module.outputs[0].complete_id(),
                             },
                         },
                         "normal": {
                             "summary": "A normal example",
                             "description": "A **normal** connection works from output to input.",
                             "value": {
-                                "from": self.module.outputs[0].identifier(),
-                                "to": self.module.inputs[0].identifier(),
+                                "from": self.module.outputs[0].complete_id(),
+                                "to": self.module.inputs[0].complete_id(),
                             },
                         },
                     }
@@ -199,11 +199,57 @@ class MSYSServer(FastAPI):
 
             print("Connect")
 
-            if Module.create_connection(parent, output, input):
-                msg = {"from": output.identifier(), "to": input.identifier()}
+            if Connection.connect( output, input, parent):
+                msg = {"from": output.complete_id(), "to": input.complete_id()}
 
-                background_tasks.add_task(publish, Topics.CONNECT, json.dumps(parent.identifier()), msg)
+                background_tasks.add_task(publish, Topics.CONNECT, json.dumps(parent.complete_id()), msg)
                 background_tasks.add_task(publish_parent_status, parent)
+                return {"message": "Successfull Connection!"}
+            raise HTTPException(status_code=404, detail="Connection not Possible")
+
+        @modules.delete("/disconnect", status_code=status.HTTP_202_ACCEPTED)
+        async def connect(
+                background_tasks: BackgroundTasks,
+                body=Body(
+                    ...,
+                    examples={
+                        "lazy": {
+                            "summary": "A lazy example",
+                            "description": "A **lazy** connection works does not care about right direction.",
+                            "value": {
+                                "from": self.module.inputs[0].complete_id(),
+                                "to": self.module.outputs[0].complete_id(),
+                            },
+                        },
+                        "normal": {
+                            "summary": "A normal example",
+                            "description": "A **normal** connection works from output to input.",
+                            "value": {
+                                "from": self.module.outputs[0].complete_id(),
+                                "to": self.module.inputs[0].complete_id(),
+                            },
+                        },
+                    }
+                )
+        ):
+            print("found " + str(body))
+            res = self.module.find_pair(body["from"], body["to"])
+            if len(res) != 3:
+                raise HTTPException(status_code=404, detail="Not Connectable")
+            parent = res[2]
+
+            if not isinstance(parent, Module):
+                raise HTTPException(status_code=404, detail="Module not Found")
+            input = res[2]
+            output = res[1]
+
+
+
+            if Connection.disconnect(output, input, parent):
+                msg = {"from": output.complete_id(), "to": input.complete_id()}
+
+                background_tasks.add_task(publish, Topics.DELETE, json.dumps(parent.complete_id()), msg)
+                # background_tasks.add_task(publish_parent_status, parent)
                 return {"message": "Successfull Connection!"}
             raise HTTPException(status_code=404, detail="Connection not Possible")
 
@@ -212,7 +258,7 @@ class MSYSServer(FastAPI):
                 background_tasks: BackgroundTasks,
                 parent_id: str = Path(
                     ...,
-                    example=str(self.module.identifier())
+                    example=str(self.module.complete_id())
                 ),
                 module: dict = Body(
                     ...,
@@ -245,7 +291,7 @@ class MSYSServer(FastAPI):
                 background_tasks: BackgroundTasks,
                 module_id: str = Path(
                     ...,
-                    example=str(self.module.identifier())
+                    example=str(self.module.complete_id())
                 ),
                 body: dict = Body(
                     ...,
@@ -270,7 +316,7 @@ class MSYSServer(FastAPI):
                 background_tasks: BackgroundTasks,
                 module_id: str = Path(
                     ...,
-                    example=str(self.module.identifier())
+                    example=str(self.module.complete_id())
                 )):
             found = find_object(module_id)
 
@@ -278,7 +324,7 @@ class MSYSServer(FastAPI):
                 raise HTTPException(status_code=404, detail="Module not Found")
 
             msg = found.to_dict()
-            parent_id = str(found.parent.identifier())
+            parent_id = str(found.parent.complete_id())
             found.delete()
             # background_tasks.add_task(publish, Topics.DELETE, json.loads(parent_id), msg)
             background_tasks.add_task(publish_parent_status, parent_id)
@@ -328,7 +374,7 @@ class MSYSServer(FastAPI):
                 background_tasks: BackgroundTasks,
                 module_id: str = Path(
                     ...,
-                    example=str(self.module.identifier())
+                    example=str(self.module.complete_id())
                 )):
             found = find_object(module_id)
             if not isinstance(found, Module):

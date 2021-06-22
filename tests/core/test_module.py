@@ -1,5 +1,5 @@
 import pytest
-from msys.core import Module, Connectable, Type, Option
+from msys.core import Module, Connectable, Type, Option, Connection
 
 
 @pytest.mark.core
@@ -48,15 +48,8 @@ def test_basics(options, inputs, outputs):
                 {
                     'id': "1",
                     'identifier': ['1'],
-                    'inputs': [],
-                    'metadata': {},
-                    'options': [],
-                    'outputs': [],
-                    'modules':[],
-                    'connections':{}
                  }, True
         ),
-        ({}, False)
     ]
 )
 def test_serialisation(json, correct):
@@ -136,7 +129,7 @@ parent = Module(sub_modules=[child0, child1],
     ]
 )
 def test_identifier(obj, identifier):
-    assert obj.identifier() == identifier
+    assert obj.complete_id() == identifier
 
 
 @pytest.mark.core
@@ -195,7 +188,7 @@ def test_delete():
                     inputs=[Connectable(Type(0), 3), Connectable(Type(0), 4)],
                     outputs=[Connectable(Type(0), 5), Connectable(Type(0), 5)])
 
-    identifier = child0.identifier()
+    identifier = child0.complete_id()
 
     obj = parent.find(identifier)
     obj.delete()
@@ -219,11 +212,11 @@ def test_is_tree_positive():
     child4 = Module(inputs=[Connectable(Type(4)), Connectable(Type(4))],
                     outputs=[Connectable(Type(4))])
 
-    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
-    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
-    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+    Connection.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connection.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connection.connect(child3.get_outputs()[0], child4.get_inputs()[1])
 
     tree = Module(sub_modules=[child0, child1, child2, child3, child4])
     assert tree.is_tree()
@@ -249,12 +242,12 @@ def test_is_tree_negative():
     child4 = Module(inputs=[Connectable(Type(4)), Connectable(Type(4))],
                     outputs=[Connectable(Type(4))])
 
-    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
-    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
-    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
-    Connectable.connect(child4.get_outputs()[0], child0.get_inputs()[0])
+    Connection.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connection.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connection.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+    Connection.connect(child4.get_outputs()[0], child0.get_inputs()[0])
 
     graph = Module(sub_modules=[child0, child1, child2, child3, child4])
     assert not graph.is_tree()
@@ -354,11 +347,11 @@ def test_process_tree():
     for child in childs:
         child.process = types.MethodType(move_min, child)
 
-    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
-    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
-    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+    Connection.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connection.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connection.connect(child3.get_outputs()[0], child4.get_inputs()[1])
 
     tree = Module(sub_modules=childs)
     assert tree.update()
@@ -404,12 +397,12 @@ def test_is_tree_negative():
     for child in childs:
         child.process = types.MethodType(move_min, child)
 
-    Connectable.connect(child0.get_outputs()[0], child1.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child2.get_inputs()[0])
-    Connectable.connect(child1.get_outputs()[0], child3.get_inputs()[0])
-    Connectable.connect(child2.get_outputs()[0], child4.get_inputs()[0])
-    Connectable.connect(child3.get_outputs()[0], child4.get_inputs()[1])
-    Connectable.connect(child4.get_outputs()[0], child0.get_inputs()[0])
+    Connection.connect(child0.get_outputs()[0], child1.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child2.get_inputs()[0])
+    Connection.connect(child1.get_outputs()[0], child3.get_inputs()[0])
+    Connection.connect(child2.get_outputs()[0], child4.get_inputs()[0])
+    Connection.connect(child3.get_outputs()[0], child4.get_inputs()[1])
+    Connection.connect(child4.get_outputs()[0], child0.get_inputs()[0])
 
     graph = Module(sub_modules=childs)
 
