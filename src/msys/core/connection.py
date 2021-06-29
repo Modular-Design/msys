@@ -3,7 +3,7 @@ from .unit import Unit, UUnit
 from .connectable import Connectable, ConnectableInterface, ConnectableFlag
 import json
 
-class Connection(UUnit):
+class Connection():
     def __init__(self,parent=None, output = None, input = None, id=None):
         super().__init__(id, parent)
         self.out_ref = weakref.ref(output)

@@ -1,116 +1,54 @@
-from .interfaces import ConnectableInterface
-from enum import Enum
-import weakref
-from .unit import UUnit
+from ..interfaces import ISerializer, IChild, IUpdatable
+from .helpers import encrypt
+from typing import Optional
+from .metadata import Metadata
 
+class Connectable(ISerializer, IChild, IUpdatable):
+    def __init__(self,
+                 id: Optional[object] = None,
+                 name: Optional[str] = None,
+                 description: Optional[str] = None,
+                 default_value: Optional[dict] = None,
+                 removable: Optional[bool] = False):
+        super().__init__()
+        self.id = id
+        self.parent = None
+        self.meta = Metadata(name, description)
+        self.data = default_value
+        self.last_hash = encrypt(self.data)
+        self.removable = removable
 
-class ConnectableFlag(Enum):
-    INPUT = 0
-    OUTPUT = 1
-
-
-class Connectable(UUnit, ConnectableInterface):
-    def __init__(self, type, id=None):
-        super().__init__(id)
-        self.ctype = type
-        self.input = None
-        self.outputs = []
-        self.flag = None
+    def set_parent(self, module):
+        self.parent = module
 
     def to_dict(self) -> dict:
-        res = super().to_dict()
-        res["type"] = self.ctype.to_dict()
-        if self.input:
-            res["ingoing"] = self.input().id
-        if self.outputs:
-            res["outpoing"] = [o().id for o in self.outputs]
+        res = dict()
+
+        res["id"] = self.id
+        res["removable"] = self.removable
+        res["data"] = self.data
+
+        res["meta"] = self.meta.to_dict()
+
         return res
 
-    def from_dict(self, json: dict, safe=False) -> bool:
-        pass
-
-    def set_global(self, flag: ConnectableFlag):
-        self.flag = flag
-
-    def get_local(self):
-        if self.flag is None:
-            return self.flag
-        if self.flag.name == "INPUT":
-            return ConnectableFlag.OUTPUT
-        else:
-            return ConnectableFlag.INPUT
-
-    def get_global(self):
-        return self.flag
-
-    def get_value(self):
-        if self.get_ingoing():
-            self.ctype.set_value(self.get_ingoing().get_value())
-        return self.ctype.get_value()
-
-    def set_value(self, value) -> bool:
-        if not self.get_ingoing():
-            return self.ctype.set_value(value)
-        return False
-
-    def get_type(self):
-        return self.ctype
-
-    def get_ingoing(self):
-        if self.input:
-            return self.input()
-        return None
-
-    def get_outgoing(self) -> []:
-        res = []
-        for out in self.outputs:
-            obj = out()
-            if obj:
-                res.append(obj)
-        return res
-
-    def connect_ingoing(self, output) -> bool:
-        if output:
-            from .connection import Connection
-            return Connection.connect(output, self)
-        return False
-
-    def connect_outgoing(self, input) -> bool:
-        if input:
-            from .connection import Connection
-            return Connection.connect(self, input)
-        return False
-
-    def connect_multiple_outgoing(self, inputs: list) -> bool:
-        worked = True
-        if inputs:
-            for input in inputs:
-                from .connection import Connection
-                if not Connection.connect(self, input):
-                    worked = False
-        return worked
-
-    def disconnect_ingoing(self) -> bool:
-        if self.get_ingoing():
-            from .connection import Connection
-            return Connection.disconnect(self.get_ingoing(), self)
+    def load(self, json: dict) -> bool:
+        if "id" in json.keys():
+            self.id = json["id"]
+        if "meta" in json.keys():
+            self.meta.load(json["meta"])
+        if "data" in json.keys():
+            self.data = "data"
+        if "removable" in json.keys():
+            self.removable = "removable"
         return True
 
-    def disconnect_outgoing(self) -> bool:
-        success = True
-        if self.get_outgoing():
-            for input in self.get_outgoing():
-                print(input)
-                from .connection import Connection
-                if not Connection.disconnect(self, input):
-                    success = False
-        return success
+    def update(self) -> bool:
+        hash = encrypt(self.data)
+        res = hash == self.last_hash
+        self.last_hash = hash
+        return res
 
     def is_changed(self) -> bool:
-        if self.get_ingoing():
-            return self.get_ingoing().is_changed()
-        return self.ctype.is_changed()
+        return encrypt(self.data) == self.last_hash
 
-    def update(self) -> bool:
-        result = self.is_changed()
-        return result

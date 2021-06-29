@@ -1,11 +1,14 @@
-from .serializer import Serializer, SerializerInterface, includes
+from ..interfaces import ISerializer
+from typing import Optional
 
-class Point(SerializerInterface):
-    def __init__(self, x=0.0, y=0.0):
+class Point(ISerializer):
+    def __init__(self,
+                 x: Optional[float]=0.0,
+                 y: Optional[float]=0.0):
         self.x = x
         self.y = y
 
-    def from_dict(self, json: dict) -> bool:
+    def load(self, json: dict) -> bool:
         if "x" in json.keys():
             self.x = json["x"]
         if "y" in json.keys():
@@ -16,17 +19,26 @@ class Point(SerializerInterface):
         return self.__dict__
 
 
-class Metadata(Serializer):
-    def __init__(self, name="", color="", pos=None, inverted=False, description=None):
+class Metadata(ISerializer):
+    def __init__(self,
+                 name: Optional[str] = None,
+                 description: Optional[str] = None,
+                 color: Optional[str] = None,
+                 pos: Optional[Point] = None,
+                 inverted: Optional[bool] =False):
         self.name = name
+        self.description = description
         self.color = color
         self.pos = pos
         self.inverted = inverted
-        self.description = description
 
-    def from_dict(self, json: dict) -> bool:
+
+    def load(self, json: dict) -> bool:
         if "name" in json.keys():
             self.name = json["name"]
+
+        if "description" in json.keys():
+            self.description = json["description"]
 
         if "color" in json.keys():
             self.color = json["color"]
@@ -38,9 +50,6 @@ class Metadata(Serializer):
 
         if "inverted" in json.keys():
             self.inverted = json["inverted"]
-
-        if "description" in json.keys():
-            self.description = json["description"]
 
         return True
 

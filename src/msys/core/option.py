@@ -1,10 +1,16 @@
-from .serializer import Serializer, includes
-import uuid
+from ..interfaces import ISerializer
+from .helpers import includes
+from typing import Optional, List
 
+class Option(ISerializer):
+    def __init__(self,
+                 id: Optional[str] = None,
+                 title: Optional[str] = None,
+                 default_value: Optional[List[str]] = None,
+                 description: Optional[str] = "",
+                 selection: Optional[List[str]] = None,
+                 single: Optional[bool] = True):
 
-class Option(Serializer):
-    def __init__(self, id=str(uuid.uuid4()), title="", default_value=[], description="", selection=[], single=True):
-        super().__init__()
         self.id = id
         self.title = title
         self.description = description
@@ -18,36 +24,28 @@ class Option(Serializer):
             self.value = []
 
     def to_dict(self) -> dict:
-        res = super().to_dict()
+        res = dict()
         if self.id:
-            res.update({"id": self.id})
+            res["id"] = self.id
         if self.title:
-            res.update({"title": self.title})
+            res["title"] = self.title
         if self.value:
-            res.update({"value": self.value})
+            res["value"] = self.value
         if self.description:
-            res.update({"description": self.description})
+            res["description"] = self.description
         if self.selection:
-            res.update({"selection": self.selection, "single": self.single})
+            res["selection"] = self.selection
+            res["single"] = self.single
 
         return res
 
-    def from_dict(self, json: dict, safe=False) -> bool:
-        if not super().from_dict(json, safe):
-            return False
-
+    def load(self, json: dict) -> bool:
         if "id" in json.keys():
             self.id = json["id"]
-
-        if "title" in json.keys():
-            self.title = json["title"]
 
         value = None
         if "value" in json.keys():
             value = json["value"]
-
-        if "description" in json.keys():
-            self.description = json["description"]
 
         if includes(json.keys(), ["selection", "single"]):
             self.selection = json["selection"]
