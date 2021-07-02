@@ -1,6 +1,4 @@
-from fastapi import FastAPI
-from typing import Optional
-from ..core import Node, Metadata
+from fastapi import FastAPI, Body
 from .nodes_router import NodesRouter
 from .extension_router import ExtensionRouter
 from .connectable_router import ConnectableRouter
@@ -10,16 +8,14 @@ class Server(FastAPI):
     def __init__(self,
                  blueprint):
         super().__init__()
-        if type(blueprint) == type: # is class
+        if type(blueprint) != type:  # is class
             self.default = blueprint()
         else:
             self.default = blueprint
 
-
         title = self.default.meta.name
         if title:
             self.title = title
-
 
         description = self.default.meta.description
         if description:
@@ -43,9 +39,9 @@ class Server(FastAPI):
 
             @self.post("/structure", tags=["blueprint"])
             async def restructure(
-                body=Body(
-                    ...,
-                )):
+                    body=Body(
+                        ...,
+                    )):
                 """interacts with blueprint"""
 
                 if not self.default.load(body):

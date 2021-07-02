@@ -1,7 +1,8 @@
 import requests
 from fastapi import APIRouter, HTTPException, Body
 from typing import Optional
-from msys.core.node import Node
+from ..core.node import Node
+
 
 class NodesRouter(APIRouter):
     def __init__(self,
@@ -16,8 +17,13 @@ class NodesRouter(APIRouter):
                 res.append(node.to_dict())
             return res
 
+        @self.get("/registered")
+        async def get_registered():
+            res = self.module.registered.copy()
+            return res
+
         @self.get("/{id}/config")
-        async def get_config(id:str):
+        async def get_config(id: str):
             node = self.module.get_node(id)
             if node is None:
                 raise HTTPException(status_code=404, detail="Not Found")
@@ -26,7 +32,7 @@ class NodesRouter(APIRouter):
         @self.post("/{id}/config")
         async def change_config(id: str,
                                 body=Body(
-                                  ...,
+                                    ...,
                                 ),
                                 ):
             node = self.module.get_node(id)
@@ -46,14 +52,14 @@ class NodesRouter(APIRouter):
             return node.update()
 
         @self.get("/{id}/meta")
-        async def get_meta(id:str):
+        async def get_meta(id: str):
             node = self.module.get_node(id)
             if node is None:
                 raise HTTPException(status_code=404, detail="Not Found")
             return node.meta.to_dict()
 
         @self.post("/{id}/meta")
-        async def change_meta(id:str,
+        async def change_meta(id: str,
                               body=Body(
                                   ...,
                               ),
@@ -65,7 +71,7 @@ class NodesRouter(APIRouter):
             return node.meta.to_dict()
 
         @self.get("/{id}/inputs")
-        async def get_inputs(id:str):
+        async def get_inputs(id: str):
             node = self.module.get_node(id)
             if node is None:
                 raise HTTPException(status_code=404, detail="Not Found")
@@ -84,7 +90,7 @@ class NodesRouter(APIRouter):
             return c.to_dict()
 
         @self.get("/{id}/outputs")
-        async def get_outputs(id:str):
+        async def get_outputs(id: str):
             node = self.module.get_node(id)
             if node is None:
                 raise HTTPException(status_code=404, detail="Not Found")
@@ -92,12 +98,15 @@ class NodesRouter(APIRouter):
             for c in node.outputs:
                 res.append(c.to_dict())
 
-        @self.post("/add")
-        async def add_node():
-            pass
+        @self.post("/add/{access_id}")
+        async def add_node(access_id: str):
+            if access_id in self.module.registered:
+                print("[NRouter]: " + self.module.registered[access_id]["launch"])
+                self.module.add_node(Node(process=self.module.registered[access_id]["launch"]))
+            return {"msg": "success"}
 
         @self.delete("/{id}/delete")
-        async def delete(id:str):
+        async def delete(id: str):
             node = self.module.get_node(id)
             if node is None:
                 raise HTTPException(status_code=404, detail="Not Found")
@@ -105,7 +114,4 @@ class NodesRouter(APIRouter):
             return len(self.module.nodes)
 
 
-
-    def add_node(self):
-        pass
 

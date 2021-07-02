@@ -1,18 +1,21 @@
 import requests
 from ..interfaces import IChild, IUpdatable, ISerializer
 from typing import Optional, List
-from subprocess import Popen
+import subprocess
 from .metadata import Metadata
 import json
 from .connectable import Connectable
 from .option import Option
+from .helpers import find_open_ports
+import uuid
+import uvicorn
 
 
 class Node(IChild, IUpdatable, ISerializer):
     def __init__(self,
                  id: Optional[str] = None,
+                 process: Optional[str] = None,
                  url: Optional[str] = None,
-                 process: Optional[Popen] = None,
                  name: Optional[str] = None,
                  description: Optional[str] = None,
                  inputs: Optional[List[Connectable]] = None,
@@ -22,9 +25,28 @@ class Node(IChild, IUpdatable, ISerializer):
                  removable_outputs: Optional[bool] = False,
                  ram_reserve: Optional[float] = 0.0,
                  ):
-        self.url = url
-        self.process = None
+
+        if process:
+            print("[Node]: " + str(process))
+            url = "http://127.0.0.1:{port}"
+            port = find_open_ports()
+            self.url = url.replace("{port}", str(port))
+
+            if type(process) == str:
+                cmd = process.replace("{port}", str(port))
+                self.process = subprocess.Popen(cmd)
+
+            elif type(process) == type: # is class
+                from ..routers import Server
+                self.process = subprocess.run(uvicorn.run(Server(process), port=port)) # TODO
+
+        else:
+            self.url = url
+
         self.parent = None
+
+        if id is None:
+            id = str(uuid.uuid4())
 
         self.id = id
         self.meta = Metadata(name=name, description=description)
@@ -46,13 +68,12 @@ class Node(IChild, IUpdatable, ISerializer):
         self.ram_reserve = ram_reserve
 
         if self.url:
-            response = requests.get(self.url+"/config")
+            response = requests.get(self.url + "/config")
             if response.status_code != 200:
                 pass
 
             self.load(response.content)
         return
-
 
     def set_parent(self, module: "Module"):
         self.parent = module
@@ -81,8 +102,8 @@ class Node(IChild, IUpdatable, ISerializer):
 
         return res
 
-    def configure(self, data:dict) -> bool:
-        print("[Node] type: "+ str(type(data)))
+    def configure(self, data: dict) -> bool:
+        print("[Node] type: " + str(type(data)))
         response = requests.post(self.url + "/config", data)
         print("[Node] response")
         if response.status_code != 200:
@@ -93,7 +114,7 @@ class Node(IChild, IUpdatable, ISerializer):
     def add_input(self) -> bool:
         data = self.to_dict()
         data["inputs"] = {"size": len(self.inputs) + 1, "removable": self.removable_inputs, "elements": []}
-        return configure(data)
+        return self.configure(data)
 
     def remove_input(self, id) -> bool:
         input = self.get_input(id)
@@ -103,8 +124,7 @@ class Node(IChild, IUpdatable, ISerializer):
         self.inputs.remove(input)
 
         data = self.to_dict()
-        return configure(data)
-
+        return self.configure(data)
 
     def load(self, dictionary: dict) -> bool:
         if type(dictionary) == str or type(dictionary) == bytes:
@@ -213,7 +233,6 @@ class Node(IChild, IUpdatable, ISerializer):
             if out.is_changed():
                 return True
 
-
     def get_input(self, id: str):
         for con in self.inputs:
             if con.id == id:
@@ -232,6 +251,6 @@ class Node(IChild, IUpdatable, ISerializer):
 
     def exit(self):
         del self
-        #if self.process is not None:
+        # if self.process is not None:
         #    self.process.kill()
         pass

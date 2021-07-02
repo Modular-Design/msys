@@ -15,7 +15,6 @@ def load_entrypoints(entry_name: str):
     return entrypoints[entry_name]
 
 
-
 def get_registered(entry_name: str):
     entrypoints = load_entrypoints()
     registered = []
@@ -24,7 +23,7 @@ def get_registered(entry_name: str):
         return entrypoints
 
     for entry in entrypoints[entry_name]:
-        eclass= entry.load()
+        eclass = entry.load()
         info = get_class_info(eclass)
         if set_class_info(eclass, info):
             info["class"] = eclass
@@ -32,21 +31,28 @@ def get_registered(entry_name: str):
 
     return registered
 
+
 def get_modules():
     return get_registered('msys.modules')
+
 
 def get_types():
     return get_registered('msys.types')
 
+
 def get_extensions():
     return get_registered('msys.extensions')
+
 
 def filter_package(package, entries) -> []:
     def fun(variable):
         return variable.get("package") == package
+
     return list(filter(fun, entries))
+
 
 def filter_name(name, entries) -> []:
     def fun(variable):
         return variable.get("name") == name
+
     return list(filter(fun, entries))
