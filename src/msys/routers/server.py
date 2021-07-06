@@ -2,13 +2,13 @@ from fastapi import FastAPI, Body
 from .nodes_router import NodesRouter
 from .extension_router import ExtensionRouter
 from .connectable_router import ConnectableRouter
-
+import inspect
 
 class Server(FastAPI):
     def __init__(self,
                  blueprint):
         super().__init__()
-        if type(blueprint) != type:  # is class
+        if inspect.isclass(blueprint):
             self.default = blueprint()
         else:
             self.default = blueprint
@@ -21,7 +21,7 @@ class Server(FastAPI):
         if description:
             self.description = description
 
-        if self.default.nodes is not None:
+        if hasattr(self.default, 'nodes'):
             self.extensions = ExtensionRouter(self.default)
             self.nodes = NodesRouter(self.default)
             self.inputs = ConnectableRouter(self.default, "inputs")
@@ -39,6 +39,28 @@ class Server(FastAPI):
 
             @self.post("/structure", tags=["blueprint"])
             async def restructure(
+                    body=Body(
+                        ...,
+                    )):
+                """interacts with blueprint"""
+
+                if not self.default.load(body):
+                    return
+                return self.default.to_dict()
+
+            @self.post("/connect", tags=["connection"])
+            async def connect(
+                    body=Body(
+                        ...,
+                    )):
+                """interacts with blueprint"""
+
+                if not self.default.load(body):
+                    return
+                return self.default.to_dict()
+
+            @self.delete("/disconnect", tags=["connection"])
+            async def disconnect(
                     body=Body(
                         ...,
                     )):
@@ -82,3 +104,6 @@ class Server(FastAPI):
                 raise HTTPException(status_code=404, detail="Not Connectable")
             instance.update()
             return instance.to_dict()
+
+    def to_dict(self):
+        return self.default.to_dict()

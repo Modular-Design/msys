@@ -1,12 +1,11 @@
 import click
 import uvicorn
-from ..core.module import Module
+from ..core import Module, Node
 from ..routers.server import Server
 
-server = Server(Module)
 
 
-def launch(module="msys.scripts.msys:server", host= "127.0.0.1", port=8000):
+def launch(module="msys.scripts.modules:module", host= "127.0.0.1", port=8000):
     uvicorn.run(module, host=host, port=port, log_level="info", reload=True)
 
 
@@ -18,7 +17,7 @@ def msys(ctx):
 
 
 @msys.command("serve")
-@click.option('-m', '--module', default="msys.scripts.msys:server", help='The module to host.')
+@click.option('-m', '--module', default="msys.scripts.modules:module", help='The module to host.')
 @click.option('-h', '--host', default="127.0.0.1", help='The host address.', type=str)
 @click.option('-p', '--port', default=8000, help='The port address.', type=int)
 def serve(module, host, port):

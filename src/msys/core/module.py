@@ -3,6 +3,7 @@ from .node import Node
 from .connectable import Connectable
 from .option import Option
 from .helpers import load_entrypoints
+import inspect
 
 
 class Module(Node):
@@ -14,12 +15,23 @@ class Module(Node):
                  options: Optional[List[Option]] = None,
                  nodes: Optional[Node] = None):
         super().__init__(name=name, description=description)
-        if nodes is None:
-            nodes = []
-        self.nodes = nodes
-        self.connections = []
+
         self.registered = dict()
         self.update_registered()
+
+        # add nodes
+        if nodes is None:
+            nodes = []
+        self.nodes = []
+
+        for node in nodes:
+            if isinstance(node, Node):
+                self.nodes.append(node)
+            if type(node) == str:
+                self.add_node_from_key(node)
+
+        self.connections = []
+
 
     def update_registered(self):
         # register entrypoints
@@ -27,20 +39,17 @@ class Module(Node):
         if entrypoints:
             print("[Module]: " + str(entrypoints))
             for entry in entrypoints:
-                eclass = entry.load()
+                try:
+                    eclass = entry.load()
+                except:
+                    continue
 
-                strclass = str(entry.value)
-                if type(eclass) == type: # is class
-                    obj = eclass()
-                    pos0 = strclass.find("'") + 1
-                    pos1 = strclass.find("'", pos0)
-                    strclass = strclass[pos0: pos1]
-                else:
-                    obj = eclass
+                print("[Module] load entry: " + entry.value)
+                obj = eclass
 
                 meta = obj.to_dict()["meta"]
 
-                infos = dict(pyclass=eclass)#launch
+                infos = dict(launch="uvicorn " +entry.value + " --port {port}")#launch
                 if "name" in meta.keys():
                     infos["name"] = meta["name"]
                 else:
@@ -50,20 +59,49 @@ class Module(Node):
                     infos["description"] = meta["description"]
 
                 self.registered.update({entry.name: infos})
-        print(self.registered)
+        print("[Module]: registered " + str(self.registered))
         # register from file
 
     def get_node(self, id:str):
+        if id == self.id:
+            return self
         for node in self.nodes:
             if node.id == id:
                 return node
+        return None
 
     def add_node(self,
                  node: Node):
         self.nodes.append(node)
 
-    def connect(self, output, input):
+    def add_node_from_key(self,
+                 key: str):
+        if not key in self.registered.keys():
+            return False
+        self.add_node(Node(id=len(self.nodes), process=self.registered[key]["launch"])) # TODO remove id setter
+        return True
+
+    def find_input(self, parent_id: str, input_id: str):
+        node = self.get_node(parent_id)
+        if not node:
+            return None
+        if node is self:
+            return node.get_output(input_id)
+        return node.get_input(input_id)
+
+    def find_output(self, parent_id: str, output_id: str):
+        node = self.get_node(parent_id)
+        if not node:
+            return None
+        if node is self:
+            return node.get_input(output_id)
+        return node.get_output(output_id)
+
+    def connect(self, output: Connectable, input: Connectable):
+        
         pass
 
     def disconnect(self, id):
         pass
+
+

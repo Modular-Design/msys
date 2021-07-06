@@ -6,9 +6,8 @@ from .metadata import Metadata
 import json
 from .connectable import Connectable
 from .option import Option
-from .helpers import find_open_ports
+from .processor import Processor
 import uuid
-import uvicorn
 
 
 class Node(IChild, IUpdatable, ISerializer):
@@ -27,18 +26,9 @@ class Node(IChild, IUpdatable, ISerializer):
                  ):
 
         if process:
-            print("[Node]: " + str(process))
-            url = "http://127.0.0.1:{port}"
-            port = find_open_ports()
-            self.url = url.replace("{port}", str(port))
-
-            if type(process) == str:
-                cmd = process.replace("{port}", str(port))
-                self.process = subprocess.Popen(cmd)
-
-            elif type(process) == type: # is class
-                from ..routers import Server
-                self.process = subprocess.run(uvicorn.run(Server(process), port=port)) # TODO
+            self.process = Processor(process)
+            self.url = self.process.start()
+            print("[Node]: url "+ self.url)
 
         else:
             self.url = url
@@ -78,27 +68,34 @@ class Node(IChild, IUpdatable, ISerializer):
     def set_parent(self, module: "Module"):
         self.parent = module
 
-    def to_dict(self) -> dict:
-        self.update_inverted()
+    def get_configuration(self) -> dict:
         res = dict()
         res["id"] = self.id
         res["ram"] = self.ram_reserve
         res["meta"] = self.meta.to_dict()
 
-        if self.inputs:
-            res["inputs"] = {"size": len(self.inputs), "removable": self.removable_inputs, "elements": []}
-            for inp in self.inputs:
-                res["inputs"]["elements"].append(inp.to_dict())
-
-        if self.outputs:
-            res["outputs"] = {"size": len(self.outputs), "removable": self.removable_outputs, "elements": []}
-            for out in self.outputs:
-                res["outputs"]["elements"].append(out.to_dict())
-
         if self.options:
             res["options"] = {"size": len(self.options), "addable": False, "elements": []}
             for opt in self.options:
                 res["options"]["elements"].append(opt.to_dict())
+
+        if self.inputs:
+            res["inputs"] = {"size": len(self.inputs), "removable": self.removable_inputs, "elements": []}
+
+        if self.outputs:
+            res["outputs"] = {"size": len(self.outputs), "removable": self.removable_outputs, "elements": []}
+
+    def to_dict(self) -> dict:
+        self.update_inverted()
+        res = get_configuration()
+
+        if self.inputs:
+            for inp in self.inputs:
+                res["inputs"]["elements"].append(inp.to_dict())
+
+        if self.outputs:
+            for out in self.outputs:
+                res["outputs"]["elements"].append(out.to_dict())
 
         return res
 
@@ -130,12 +127,10 @@ class Node(IChild, IUpdatable, ISerializer):
         if type(dictionary) == str or type(dictionary) == bytes:
             dictionary = json.loads(dictionary)
 
-        print("[Nodes] meta")
         if "meta" in dictionary.keys():
             if not self.meta.to_dict():
                 self.meta.load(dictionary["meta"])
 
-        print("[Nodes] options")
         if "options" in dictionary.keys():
             options = dictionary["options"]
 
@@ -146,7 +141,6 @@ class Node(IChild, IUpdatable, ISerializer):
                             return False
                         break
 
-        print("[Nodes] inputs")
         if "inputs" in dictionary.keys():
             inputs = dictionary["inputs"]
             for inp in inputs["elements"]:
@@ -158,7 +152,7 @@ class Node(IChild, IUpdatable, ISerializer):
                         found = True
                         break
                 if not found:
-                    con = Connectable()
+                    con = Connectable(parent=self)
                     con.load(inp)
                     self.inputs.append(con)
 
@@ -173,7 +167,6 @@ class Node(IChild, IUpdatable, ISerializer):
                     if not found:
                         self.inputs.remove(input)
 
-        print("[Nodes] outputs")
         if "outputs" in dictionary.keys():
             outputs = dictionary["outputs"]
             for out in outputs["elements"]:
@@ -185,7 +178,7 @@ class Node(IChild, IUpdatable, ISerializer):
                         found = True
                         break
                 if not found:
-                    con = Connectable()
+                    con = Connectable(parent=self, input=False)
                     con.load(out)
                     self.outputs.append(con)
 
@@ -237,11 +230,13 @@ class Node(IChild, IUpdatable, ISerializer):
         for con in self.inputs:
             if con.id == id:
                 return con
+        return None
 
     def get_output(self, id: str):
         for con in self.outputs:
             if con.id == id:
                 return con
+        return None
 
     def update_inputs(self):
         pass

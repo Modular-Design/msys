@@ -9,17 +9,22 @@ class Connectable(ISerializer, IChild, IUpdatable):
                  name: Optional[str] = None,
                  description: Optional[str] = None,
                  default_value: Optional[dict] = None,
-                 removable: Optional[bool] = False):
+                 removable: Optional[bool] = False,
+                 input=True,
+                 parent = None):
         super().__init__()
         self.id = id
-        self.parent = None
+        self.parent = parent
+        self.input = input
         self.meta = Metadata(name, description)
         self.data = default_value
         self.last_hash = encrypt(self.data)
         self.removable = removable
 
-    def set_parent(self, module):
-        self.parent = module
+        self.ingoing = None
+
+    def set_parent(self, node):
+        self.parent = node
 
     def to_dict(self) -> dict:
         res = dict()
@@ -52,3 +57,26 @@ class Connectable(ISerializer, IChild, IUpdatable):
     def is_changed(self) -> bool:
         return encrypt(self.data) == self.last_hash
 
+    def is_connectable(self, con:"Connectable") -> bool:
+        res = self.parent.get_configuration()
+        config = self.to_dict()
+        config["data"] = con.data
+        if self.input:
+            res["inputs"]["elements"].append(config)
+        else:
+            res["outputs"]["elements"].append(config)
+
+        response = requests.post(self.url + "/config", res)
+        if response.status_code != 200:
+            return False
+        return True
+
+    def set_ingoing(self, con:"Connectable") -> bool:
+        if not is_connectable(con):
+            print("[Connectable]: [ERROR] wrong format")
+            return False
+        if con.input == self.input:
+            print("[Connectable]: [ERROR] same type")
+            return False
+
+        self.ingoing = dict(parent_id=con.parent.id, connectable_id=con.id)

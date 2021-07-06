@@ -20,6 +20,8 @@ class NodesRouter(APIRouter):
         @self.get("/registered")
         async def get_registered():
             res = self.module.registered.copy()
+            for key in res.keys():
+                res[key]["launch"] = str(res[key]["launch"])
             return res
 
         @self.get("/{id}/config")
@@ -100,10 +102,9 @@ class NodesRouter(APIRouter):
 
         @self.post("/add/{access_id}")
         async def add_node(access_id: str):
-            if access_id in self.module.registered:
-                print("[NRouter]: " + self.module.registered[access_id]["launch"])
-                self.module.add_node(Node(process=self.module.registered[access_id]["launch"]))
-            return {"msg": "success"}
+            if self.module.add_node_from_key(access_id):
+                return {"msg": "success"}
+            raise HTTPException(status_code=404, detail="Not Found")
 
         @self.delete("/{id}/delete")
         async def delete(id: str):

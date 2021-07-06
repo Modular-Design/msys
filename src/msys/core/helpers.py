@@ -31,10 +31,10 @@ def load_entrypoints(entry_name: str):
 
 
 def find_open_ports() -> int:
-    res = -1
-    while res != 0:
+    res = 0
+    while res == 0:
         port = random.randint(10000, 65535)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             res = sock.connect_ex(('localhost', port))
-            if res == 0:
+            if res != 0:
                 return port

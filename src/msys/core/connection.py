@@ -4,8 +4,8 @@ from .connectable import Connectable, ConnectableInterface, ConnectableFlag
 import json
 
 class Connection():
-    def __init__(self,parent=None, output = None, input = None, id=None):
-        super().__init__(id, parent)
+    def __init__(self,output = None, input = None, id=None):
+        self.id = id
         self.out_ref = weakref.ref(output)
         self.in_ref = weakref.ref(input)
         self.meta = []
