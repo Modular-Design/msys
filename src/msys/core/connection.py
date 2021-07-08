@@ -2,12 +2,25 @@ import weakref
 from .unit import Unit, UUnit
 from .connectable import Connectable, ConnectableInterface, ConnectableFlag
 import json
+from typing import Optional
+import uuid
+from ..interfaces import ISerializer
 
-class Connection():
-    def __init__(self,output = None, input = None, id=None):
+class Connection(ISerializer):
+    def __init__(self,
+                 parent,
+                 output: Optional[Connectable] = None,
+                 input: Optional[Connectable]  = None,
+                 id: Optional[str] =None):
+
+        self.parent = parent
+        if id is None:
+            id = uuid.uuid4()
         self.id = id
         self.out_ref = weakref.ref(output)
+        self.out_identifier =
         self.in_ref = weakref.ref(input)
+        self.out_identifier = []
         self.meta = []
 
         parent.connections.append(self)
@@ -23,7 +36,7 @@ class Connection():
         return {json.dumps(output.complete_id()): {json.dumps(input.complete_id()): self.meta}}
 
 
-    def from_dict(self, json: dict, safe=False) -> bool:
+    def load(self, json: dict) -> bool:
         if not super().from_dict(json, safe):
             return False
         if self.out_ref() is None:

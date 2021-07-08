@@ -1,20 +1,19 @@
 import requests
-from ..interfaces import IChild, IUpdatable, ISerializer
+from ..interfaces import IUpdatable
+from .child import Child
 from typing import Optional, List
-import subprocess
 from .metadata import Metadata
 import json
 from .connectable import Connectable
 from .option import Option
-from .processor import Processor
 import uuid
 
 
-class Node(IChild, IUpdatable, ISerializer):
+class Node(Child, IUpdatable):
     def __init__(self,
+                 process,
+                 parent: Optional["Node"] = None,
                  id: Optional[str] = None,
-                 process: Optional[str] = None,
-                 url: Optional[str] = None,
                  name: Optional[str] = None,
                  description: Optional[str] = None,
                  inputs: Optional[List[Connectable]] = None,
@@ -25,20 +24,11 @@ class Node(IChild, IUpdatable, ISerializer):
                  ram_reserve: Optional[float] = 0.0,
                  ):
 
-        if process:
-            self.process = Processor(process)
-            self.url = self.process.start()
-            print("[Node]: url "+ self.url)
 
-        else:
-            self.url = url
+        self.process = process
 
-        self.parent = None
+        super().__init__(parent, id)
 
-        if id is None:
-            id = str(uuid.uuid4())
-
-        self.id = id
         self.meta = Metadata(name=name, description=description)
 
         if options is None:
@@ -65,10 +55,9 @@ class Node(IChild, IUpdatable, ISerializer):
             self.load(response.content)
         return
 
-    def set_parent(self, module: "Module"):
-        self.parent = module
 
     def get_configuration(self) -> dict:
+        "returns only heads things"
         res = dict()
         res["id"] = self.id
         res["ram"] = self.ram_reserve
@@ -85,6 +74,7 @@ class Node(IChild, IUpdatable, ISerializer):
         if self.outputs:
             res["outputs"] = {"size": len(self.outputs), "removable": self.removable_outputs, "elements": []}
 
+
     def to_dict(self) -> dict:
         self.update_inverted()
         res = self.get_configuration()
@@ -100,6 +90,7 @@ class Node(IChild, IUpdatable, ISerializer):
         return res
 
     def configure(self, data: dict) -> bool:
+        if self.process
         print("[Node] type: " + str(type(data)))
         response = requests.post(self.url + "/config", data)
         print("[Node] response")

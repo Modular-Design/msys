@@ -1,37 +1,74 @@
-from ..interfaces import ISerializer, IChild, IUpdatable
+from ..interfaces import IUpdatable
+from .child import Child
 from .helpers import encrypt
 from typing import Optional
 from .metadata import Metadata
 import requests
 
 
-class Connectable(ISerializer, IChild, IUpdatable):
+class ConnectableFlag(Enum):
+    INPUT = 0
+    OUTPUT = 1
+
+class Connectable(Child, IUpdatable):
     def __init__(self,
-                 id: Optional[object] = None,
+                 parent: Optional[str] = None,,
+                 id: Optional[str] = None,,
+
                  name: Optional[str] = None,
                  description: Optional[str] = None,
                  default_value: Optional[dict] = None,
                  removable: Optional[bool] = False,
-                 input=True,
-                 parent = None):
-        super().__init__()
-        self.id = id
-        self.parent = parent
-        self.input = input
+                 flag: Optional[ConnectableFlag] = ConnectableFlag.INPUT,
+                 ):
+        super().__init__(parent, id)
+        self.flag = flag
         self.meta = Metadata(name, description)
         self.data = default_value
         self.last_hash = encrypt(self.data)
         self.removable = removable
 
-        self.ingoing = None
+        self.input = None
+        self.outputs = []
 
-    def set_parent(self, node):
-        self.parent = node
+    def get_local(self):
+        if self.flag is None:
+            return self.flag
+        if self.flag.name == "INPUT":
+            return ConnectableFlag.OUTPUT
+        else:
+            return ConnectableFlag.INPUT
+
+    def get_global(self):
+        return self.flag
+
+    def get_ingoing(self):
+        if self.input:
+            return self.input()
+        return None
+
+    def get_outgoing(self) -> []:
+        res = []
+        for out in self.outputs:
+            obj = out()
+            if obj:
+                res.append(obj)
+        return res
+
+    def get_data(self):
+        if self.get_ingoing():
+            self.ctype.set_value(self.get_ingoing().get_value())
+        return self.ctype.get_value()
+
+    def set_data(self, value) -> bool:
+        if not self.get_ingoing():
+            self.ctype.set_value(value)
+
+        return True
 
     def to_dict(self) -> dict:
-        res = dict()
+        res = Child.to_dict(self)
 
-        res["id"] = self.id
         res["removable"] = self.removable
         res["data"] = self.data
 
@@ -40,8 +77,8 @@ class Connectable(ISerializer, IChild, IUpdatable):
         return res
 
     def load(self, json: dict) -> bool:
-        if "id" in json.keys():
-            self.id = json["id"]
+        Child.load(self, json)
+
         if "meta" in json.keys():
             self.meta.load(json["meta"])
         if "data" in json.keys():
@@ -73,7 +110,9 @@ class Connectable(ISerializer, IChild, IUpdatable):
             return False
         return True
 
-    def set_ingoing(self, con: "Connectable") -> bool:
+
+
+    def set_ingoing(self, outpu: "Connectable") -> bool:
         if not self.is_connectable(con):
             print("[Connectable]: [ERROR] wrong format")
             return False
