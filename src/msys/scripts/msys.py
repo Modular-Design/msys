@@ -4,7 +4,6 @@ from ..core import Module, Node
 from ..routers.server import Server
 
 
-
 def launch(module="msys.scripts.modules:module", host= "127.0.0.1", port=8000):
     uvicorn.run(module, host=host, port=port, log_level="info", reload=True)
 

@@ -32,7 +32,6 @@ class Module(Node):
 
         self.connections = []
 
-
     def update_registered(self):
         # register entrypoints
         entrypoints = load_entrypoints("msys.modules")
@@ -98,10 +97,12 @@ class Module(Node):
         return node.get_output(output_id)
 
     def connect(self, output: Connectable, input: Connectable):
-        
-        pass
+        return input.set_ingoing(output)
 
     def disconnect(self, id):
-        pass
+        input = self.get_input(id)
+        if not input:
+            return False
+        return input.set_ingoing(None)
 
 

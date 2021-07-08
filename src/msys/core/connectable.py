@@ -2,6 +2,8 @@ from ..interfaces import ISerializer, IChild, IUpdatable
 from .helpers import encrypt
 from typing import Optional
 from .metadata import Metadata
+import requests
+
 
 class Connectable(ISerializer, IChild, IUpdatable):
     def __init__(self,
@@ -71,8 +73,8 @@ class Connectable(ISerializer, IChild, IUpdatable):
             return False
         return True
 
-    def set_ingoing(self, con:"Connectable") -> bool:
-        if not is_connectable(con):
+    def set_ingoing(self, con: "Connectable") -> bool:
+        if not self.is_connectable(con):
             print("[Connectable]: [ERROR] wrong format")
             return False
         if con.input == self.input:

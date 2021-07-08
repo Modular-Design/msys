@@ -87,7 +87,7 @@ class Node(IChild, IUpdatable, ISerializer):
 
     def to_dict(self) -> dict:
         self.update_inverted()
-        res = get_configuration()
+        res = self.get_configuration()
 
         if self.inputs:
             for inp in self.inputs:
