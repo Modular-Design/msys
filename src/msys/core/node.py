@@ -1,17 +1,11 @@
-import requests
-from .management import Processor
+from ..management import Processor
 
 from ..interfaces import INode
-from .child import Child
+from .child import Child, IChild
 from .metadata import Metadata
 from typing import Optional, List
 from .connectable import Connectable
 from .option import Option
-
-import json
-import uuid
-
-
 
 
 class Node(Child, INode):
@@ -204,15 +198,21 @@ class Node(Child, INode):
     
     """
 
-    def get_childs(self, local=False) -> List[IChild]:
-        return self.inputs +self.outputs
+    def find_child(self, cid: List[str], local=False) -> IChild:
+        if self.get_global_id() == cid:
+            return self
+        childs = self.inputs +self.outputs
+        for child in childs:
+            if child.get_global_id() == cid:
+                return child
+        return None
 
-    def get_inputs(self, local=False) -> List[IConnectable]:
+    def get_inputs(self, local=False) -> List["Connectable"]:
         if not local:
             return self.outputs
         return self.inputs
 
-    def get_outputs(self, local=False) -> List[IConnectable]:
+    def get_outputs(self, local=False) -> List["Connectable"]:
         if not local:
             return self.inputs
         return self.outputs
@@ -238,14 +238,14 @@ class Node(Child, INode):
     def are_outputs_removable(self) -> bool:
         return self.removable_outputs
 
-    def get_removable_inputs(self) -> List[IConnectable]:
+    def get_removable_inputs(self) -> List["Connectable"]:
         res = []
         for connectable in self.inputs:
             if connectable.is_removable():
                 res.append(connectable)
         return res
 
-    def get_removable_outputs(self) -> List[IConnectable]:
+    def get_removable_outputs(self) -> List["Connectable"]:
         res = []
         for connectable in self.outputs:
             if connectable.is_removable():

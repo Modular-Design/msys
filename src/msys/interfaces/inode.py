@@ -6,9 +6,9 @@ from .iconnectable import IConnectable
 from typing import List
 from abc import ABC, abstractmethod
 
-class INode(ABC, IChild, ISerializer, IUpdatable):
+class INode(IChild, ISerializer, IUpdatable):
     @abstractmethod
-    def get_childs(self) -> List[IChild]:
+    def find_child(self, cid: List[str], local=False) -> IChild:
         raise NotImplementedError
 
     @abstractmethod
@@ -28,7 +28,7 @@ class INode(ABC, IChild, ISerializer, IUpdatable):
         raise NotImplementedError
 
     @abstractmethod
-    def get_input(self, id: str, local=False):
+    def get_output(self, id: str, local=False):
         raise NotImplementedError
 
     @abstractmethod

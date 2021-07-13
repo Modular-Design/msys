@@ -1,10 +1,11 @@
 from ..interfaces import IConnectable
 from .child import Child
 from .helpers import encrypt
-from typing import Optional
+from typing import Optional, List
 from .metadata import Metadata
 import requests
 import weakref
+from enum import Enum
 
 
 class ConnectableFlag(Enum):
@@ -14,7 +15,7 @@ class ConnectableFlag(Enum):
 class Connectable(Child, IConnectable):
     def __init__(self,
                  # Child
-                 parent: Optional[INode] = None,
+                 parent: Optional["INode"] = None,
                  id: Optional[str] = None,
 
                  # Metadata

@@ -2,9 +2,10 @@ from .ichild import IChild
 from .iupdatable import IUpdatable
 from .iserializer import ISerializer
 from abc import ABC, abstractmethod
+from typing import List
 
 
-class IConnectable(ABC, IChild, ISerializer, IUpdatable):
+class IConnectable(IChild, ISerializer, IUpdatable):
     @abstractmethod
     def get_data(self) -> dict:
         raise NotImplementedError
@@ -14,7 +15,7 @@ class IConnectable(ABC, IChild, ISerializer, IUpdatable):
         raise NotImplementedError
 
     @abstractmethod
-    def get_output(self) -> IConnectable:
+    def get_output(self) -> "IConnectable":
         raise NotImplementedError
 
     @abstractmethod
@@ -30,7 +31,7 @@ class IConnectable(ABC, IChild, ISerializer, IUpdatable):
         raise NotImplementedError
 
     @abstractmethod
-    def get_inputs(self) -> List[IConnectable]:
+    def get_inputs(self) -> List["IConnectable"]:
         raise NotImplementedError
 
     @abstractmethod

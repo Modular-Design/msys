@@ -1,5 +1,6 @@
 from ..interfaces import IChild, ISerializer
 import uuid
+from typing import Optional
 
 class Child(IChild, ISerializer):
     def __init__(self,
@@ -10,8 +11,12 @@ class Child(IChild, ISerializer):
            id = str(uuid.uuid4())
         self.id = id
 
-    def set_parent(self, node:"node") -> None:
-        self.parent = None
+    def set_parent(self, parent) -> None:
+        self.parent = parent
+
+    def get_parent(self):
+        return self.parent
+
 
     def get_local_id(self) -> str:
         return self.id

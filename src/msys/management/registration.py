@@ -1,18 +1,23 @@
-from msys.core.management.processor import Processor
+from msys.management.processor import Processor
 from msys.core.helpers import load_entrypoints
 import urllib
 import json
+from typing import Optional
+from fastapi import APIRouter
 
-class Registration():
+class Registration(APIRouter):
     def __init__(self,
                  sources: Optional[str] = None):
-
+        super().__init__(prefix="/extensions", tags=["extensions"])
         if sources is None:
             sources = []
         self.sources= sources
         self.resources = dict() # {"id","location", "limit":int, "instances" ["Process1", "Process2", etc.]}
         self.blueprints = dict() # {"id", "name", "description", "config" or "resource"}
         load_sources()
+
+        @self.get("/blueprints")
+        def
 
     def get_resources(self) -> dict:
         "use for printing"
@@ -72,7 +77,7 @@ class Registration():
 
                 meta = obj.to_dict()["meta"]
 
-                resource = dict(location="uvicorn " + entry.value + " --port {port}")
+                resource = dict(location="uvicorn " + entry.value + " --port {port}", limit=1) # TODO: delete "limit=1" later
                 source = dict(name=entry.name, description="", resource=entry.name)
 
                 if "name" in meta.keys():
@@ -119,3 +124,33 @@ class Registration():
         if rid not in self.resources.keys():
             return None
         self.resources[rid]["instances"].remove(process)
+
+
+    def launch_blueprint(self, bid: str) -> "INode":
+        blueprint = dict()
+        if bid in self.get_blueprints().keys():
+            blueprint = self.get_blueprints()[bid]
+
+        if not blueprint and bid:
+            return None
+
+        res = None
+        if "resource" in blueprint.keys():
+            process = self.launch_resource(blueprint["resource"])
+            if not process:
+                raise NotImplementedError
+                return None
+            from ..core import Node
+            res = Node(process=process)
+            if "config" in blueprint.keys():
+                res.configure(blueprint["config"])
+            return res
+
+        # no bid or is module
+        from ..core import Module
+        res = Module(registration=self)
+        if "config" in blueprint.keys():
+            res.load(blueprint["config"])
+
+        return res
+

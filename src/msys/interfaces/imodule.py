@@ -1,15 +1,16 @@
 from .inode import INode
 from abc import ABC, abstractmethod
+from typing import List
 
-class IModule(ABC, INode):
+class IModule(INode):
     @abstractmethod
-    def find_child(self, id:str, local_context=True) -> IChild:
+    def get_nodes(self) -> List[INode]:
         raise NotImplementedError
 
     @abstractmethod
-    def connect(self, output:"Connectable", input:"Connectable") -> bool:
+    def connect(self, output: "Connectable", input: "Connectable") -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    def disconnect(self, cid:"Connection") -> bool:
+    def disconnect(self, cid: List[str]) -> bool:
         raise NotImplementedError
