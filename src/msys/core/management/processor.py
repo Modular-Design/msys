@@ -7,7 +7,7 @@ import requests
 import json
 from typing import Optional
 
-class Processor():
+class Processor:
     def __init__(self,
                  id,
                  launch,
@@ -66,14 +66,14 @@ class Processor():
         if self.url:
             response = requests.get(self.url + "/config")
             if response.status_code != 200:
-                return None
+                return dict()
             return json.loads(response.content)
 
     def change_config(self, config:dict) -> dict:
         if self.url:
             response = requests.post(self.url + "/config", config)
             if response.status_code != 200:
-                return None
+                return dict()
             return json.loads(response.content)
 
 
@@ -81,5 +81,5 @@ class Processor():
         if self.url:
             response = requests.put(self.url + "/update", config)
             if response.status_code != 200:
-                return None
+                return dict()
             return json.loads(response.content)

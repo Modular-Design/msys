@@ -1,19 +1,32 @@
-from typing import Optional, List
 from .node import Node
 from .connectable import Connectable
 from .option import Option
 from .helpers import load_entrypoints
+
 import inspect
+from typing import Optional, List
 
 
-class Module(Node):
+class Module(Child, IModule):
     def __init__(self,
+                 # Child
+                 parent: Optional["Module"] = None,
+                 id: Optional[str] = None,
+
+                 # Metadata
                  name: Optional[str] = "Module",
                  description: Optional[str] = "A Master-Module",
+
+                 # new
                  inputs: Optional[List[Connectable]] = None,
                  outputs: Optional[List[Connectable]] = None,
                  options: Optional[List[Option]] = None,
-                 nodes: Optional[Node] = None):
+                 removable_inputs: Optional[bool] = False,
+                 removable_outputs: Optional[bool] = False,
+                 ram_reserve: Optional[float] = 0.0,
+                 nodes: Optional[INode] = None,
+                 connections: Optional[List[Connection]] = None
+                 ):
         super().__init__(name=name, description=description)
 
         self.registered = dict()
@@ -96,7 +109,10 @@ class Module(Node):
             return node.get_input(output_id)
         return node.get_output(output_id)
 
-    def connect(self, output: Connectable, input: Connectable):
+    def connect(self, output_id: str, input_id: str):s
+        if output_type == input_type:
+            print("[Connectable]: [ERROR] same type! Cant connect input and input or output and output")
+            return False
         return input.set_ingoing(output)
 
     def disconnect(self, id):

@@ -6,38 +6,86 @@ from typing import Optional
 import uuid
 from ..interfaces import ISerializer
 
-class Connection(ISerializer):
+class Connection(Child):
     def __init__(self,
-                 parent,
+                 parent: "Module",
                  output: Optional[Connectable] = None,
                  input: Optional[Connectable]  = None,
                  id: Optional[str] =None):
 
-        self.parent = parent
-        if id is None:
-            id = uuid.uuid4()
-        self.id = id
+        if not input.is_connectable(output):
+            return None
+        input.set_ingoing(output)
+        output.add_outgoing(input)
+        super().__init__(parent, id)
         self.out_ref = weakref.ref(output)
-        self.out_identifier =
+        self.out_id = []
         self.in_ref = weakref.ref(input)
-        self.out_identifier = []
+        self.in_id = []
         self.meta = []
 
-        parent.connections.append(self)
+        self.parent.connections.append(self)
 
+    def get_input(self):
+        input = self.in_ref()
+        if input:
+            return input
 
-    def to_dict(self) -> dict:
+        # reconnecting
+        input = self.parent.find(self.in_id)
+        if not input:
+            self.disconnect()
+            return None
+        if isinstance(input, IConnectable):
+            input.set_ingoing(self)
+            self.in_ref = weakref.ref(input)
+            return input
+        return None
+
+    def get_output(self):
+        output = self.out_ref()
+        if output:
+            return output
+
+        # reconnecting
+        output = self.parent.find(self.out_id)
+        if not output:
+            self.disconnect()
+            return None
+        if isinstance(output, IConnectable):
+            output.add_outgoing(self)
+            self.out_ref = weakref.ref(output)
+            return output
+        return None
+
+    def disconnect(self):
         input = self.in_ref()
         output = self.out_ref()
 
+        if input:
+            input.set_ingoing(None)
+
+        if output:
+            output.remove_outgoing(self)
+
+        self.parent.connections.remove(self)
+
+
+
+    def to_dict(self) -> dict:
+        config = Child.to_dict(self)
+        config["meta"] = self.meta
+        input = self.get_input()
+        output = self.get_output()
+
         if input is None or output is None:
-            del self
+            self.disconnect()
             return None
-        return {json.dumps(output.complete_id()): {json.dumps(input.complete_id()): self.meta}}
+        return {json.dumps(output.complete_id()): {json.dumps(input.complete_id()): config}}
 
 
     def load(self, json: dict) -> bool:
-        if not super().from_dict(json, safe):
+        if not super().from_dict(json):
             return False
         if self.out_ref() is None:
             self.out_ref = weakref.ref(parent.find(json.keys()[0]))
@@ -52,7 +100,11 @@ class Connection(ISerializer):
         elif json.dumps(self.in_ref().complete_id()) == json.keys()[0]:
             self.in_ref = weakref.ref(parent.find(json.keys()[0]))
 
-        self.meta = json.get(json.dumps(self.in_ref().complete_id()))
+        config = json.get(json.dumps(self.in_ref().complete_id()))
+
+        Child.load(self, config)
+        if "meta" in config.keys():
+            self.meta = config["meta"]
         return True
 
     @staticmethod
@@ -156,11 +208,11 @@ class Connection(ISerializer):
         if ingoing:
             if not input.disconnect_ingoing():
                 return False
-        input.input = weakref.ref(output)
+        input.input_ref = weakref.ref(output)
 
         outgoing = output.get_outgoing()
         if not input in outgoing:
-            output.outputs.append(weakref.ref(input))
+            output.inputs_refs.append(weakref.ref(input))
 
         if parent:
             Connection(parent, output, input)
@@ -179,7 +231,7 @@ class Connection(ISerializer):
 
         if not input in output.get_outgoing():
             return False
-        input.input = None
+        input.input_ref = None
         index = output.get_outgoing().index(input)
-        output.outputs.pop(index)
+        output.inputs_refs.pop(index)
         return True

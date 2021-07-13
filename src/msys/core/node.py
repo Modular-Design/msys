@@ -1,26 +1,33 @@
 import requests
-from ..interfaces import IUpdatable
+from .management import Processor
+
+from ..interfaces import INode
 from .child import Child
-from typing import Optional, List
 from .metadata import Metadata
-import json
+from typing import Optional, List
 from .connectable import Connectable
 from .option import Option
+
+import json
 import uuid
 
 
-class Node(Child, IUpdatable):
+
+
+class Node(Child, INode):
     def __init__(self,
-                 process,
-                 parent: Optional["Node"] = None,
+                 # new
+                 process: Processor,
+
+                 # Child
+                 parent: Optional["Module"] = None,
                  id: Optional[str] = None,
+
+                 # Metadata
                  name: Optional[str] = None,
                  description: Optional[str] = None,
-                 inputs: Optional[List[Connectable]] = None,
-                 outputs: Optional[List[Connectable]] = None,
-                 options: Optional[List[Option]] = None,
-                 removable_inputs: Optional[bool] = False,
-                 removable_outputs: Optional[bool] = False,
+
+                 # new
                  ram_reserve: Optional[float] = 0.0,
                  ):
 
@@ -29,35 +36,24 @@ class Node(Child, IUpdatable):
 
         super().__init__(parent, id)
 
-        self.meta = Metadata(name=name, description=description)
-
-        if options is None:
-            options = []
-        self.options = options
-
-        if inputs is None:
-            inputs = []
-        self.inputs = inputs
-
-        if outputs is None:
-            outputs = []
-        self.outputs = outputs
-
+        self.options = []
+        self.inputs = []
+        self.outputs = []
         self.removable_inputs = False
         self.removable_outputs = False
         self.ram_reserve = ram_reserve
+        self.meta = Metadata(name=name, description=description)
 
-        if self.url:
-            response = requests.get(self.url + "/config")
-            if response.status_code != 200:
-                pass
+        self.load(self.process.get_config())
 
-            self.load(response.content)
-        return
-
+    def get_processor(self) -> Processor:
+        return process
 
     def get_configuration(self) -> dict:
-        "returns only heads things"
+        """
+        Returns:
+            dict: header config without input or output specific content
+        """
         res = dict()
         res["id"] = self.id
         res["ram"] = self.ram_reserve
@@ -77,7 +73,8 @@ class Node(Child, IUpdatable):
 
     def to_dict(self) -> dict:
         self.update_inverted()
-        res = self.get_configuration()
+        res = Child.to_dict(self)
+        res.update(self.get_configuration())
 
         if self.inputs:
             for inp in self.inputs:
@@ -89,34 +86,8 @@ class Node(Child, IUpdatable):
 
         return res
 
-    def configure(self, data: dict) -> bool:
-        if self.process
-        print("[Node] type: " + str(type(data)))
-        response = requests.post(self.url + "/config", data)
-        print("[Node] response")
-        if response.status_code != 200:
-            return False
-        print("[Node] configure")
-        return self.load(response.content)
-
-    def add_input(self) -> bool:
-        data = self.to_dict()
-        data["inputs"] = {"size": len(self.inputs) + 1, "removable": self.removable_inputs, "elements": []}
-        return self.configure(data)
-
-    def remove_input(self, id) -> bool:
-        input = self.get_input(id)
-        if input is None:
-            return False
-
-        self.inputs.remove(input)
-
-        data = self.to_dict()
-        return self.configure(data)
-
     def load(self, dictionary: dict) -> bool:
-        if type(dictionary) == str or type(dictionary) == bytes:
-            dictionary = json.loads(dictionary)
+        Child.load(self, dictionary)
 
         if "meta" in dictionary.keys():
             if not self.meta.to_dict():
@@ -186,6 +157,20 @@ class Node(Child, IUpdatable):
 
         return True
 
+
+    def configure(self, data: dict) -> bool:
+        """
+        shortcut
+        Args:
+            data:
+
+        Returns:
+
+        """
+        return self.load(
+            self.process.change_config(data)
+        )
+
     def update_inverted(self):
         for c in self.inputs:
             c.meta.inverted = self.meta.inverted
@@ -198,11 +183,7 @@ class Node(Child, IUpdatable):
             if inp.update():
                 pass
 
-        response = requests.put(self.url + "/update")
-        if response.status_code != 200:
-            pass
-
-        self.load(response.content)
+        self.load(self.process.update_config(self.to_dict()))
 
         for out in self.outputs:
             if out.update():
@@ -217,23 +198,90 @@ class Node(Child, IUpdatable):
             if out.is_changed():
                 return True
 
-    def get_input(self, id: str):
-        for con in self.inputs:
+    """
+    
+    INode
+    
+    """
+
+    def get_childs(self, local=False) -> List[IChild]:
+        return self.inputs +self.outputs
+
+    def get_inputs(self, local=False) -> List[IConnectable]:
+        if not local:
+            return self.outputs
+        return self.inputs
+
+    def get_outputs(self, local=False) -> List[IConnectable]:
+        if not local:
+            return self.inputs
+        return self.outputs
+
+    def get_input(self, id: str, local = False):
+        for con in self.get_inputs(local):
             if con.id == id:
                 return con
         return None
 
-    def get_output(self, id: str):
-        for con in self.outputs:
+    def get_output(self, id: str, local = False):
+        for con in self.get_outputs(local):
             if con.id == id:
                 return con
         return None
 
-    def update_inputs(self):
-        pass
+    def get_options(self) -> List["Option"]:
+        return self.options
 
-    def update_outputs(self):
-        pass
+    def are_inputs_removable(self) -> bool:
+        return self.removable_inputs
+
+    def are_outputs_removable(self) -> bool:
+        return self.removable_outputs
+
+    def get_removable_inputs(self) -> List[IConnectable]:
+        res = []
+        for connectable in self.inputs:
+            if connectable.is_removable():
+                res.append(connectable)
+        return res
+
+    def get_removable_outputs(self) -> List[IConnectable]:
+        res = []
+        for connectable in self.outputs:
+            if connectable.is_removable():
+                res.append(connectable)
+        return res
+
+    def add_input(self) -> bool:
+        data = self.to_dict()
+        data["inputs"] = {"size": len(self.inputs) + 1, "removable": self.removable_inputs, "elements": []}
+        return self.configure(data)
+
+    def remove_input(self, id) -> bool:
+        input = self.get_input(id)
+        if input is None:
+            return False
+
+        self.inputs.remove(input)
+
+        data = self.to_dict()
+        return self.configure(data)
+
+    def add_input(self) -> bool:
+        data = self.to_dict()
+        data["inputs"] = {"size": len(self.inputs) + 1, "removable": self.removable_inputs, "elements": []}
+        return self.configure(data)
+
+    def remove_input(self, id) -> bool:
+        input = self.get_input(id)
+        if input is None:
+            return False
+
+        self.inputs.remove(input)
+
+        data = self.to_dict()
+        return self.configure(data)
+
 
     def exit(self):
         del self

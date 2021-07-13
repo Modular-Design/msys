@@ -97,7 +97,7 @@ class NodesRouter(APIRouter):
             if node is None:
                 raise HTTPException(status_code=404, detail="Not Found")
             res = []
-            for c in node.outputs:
+            for c in node.inputs_refs:
                 res.append(c.to_dict())
 
         @self.post("/add/{access_id}")
