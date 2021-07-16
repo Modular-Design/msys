@@ -31,11 +31,12 @@ class Connectable(Child, IConnectable):
         self.flag = flag
         self.meta = Metadata(name, description)
         self.data = default_value
-        self.last_hash = encrypt(self.get_data())
         self.removable = removable
 
         self.in_ref = None
         self.out_refs = []
+        # important that get_data is called at the end
+        self.last_hash = encrypt(self.get_data())
 
     def get_local(self):
         if self.flag is None:

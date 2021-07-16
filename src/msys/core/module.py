@@ -7,7 +7,7 @@ from .connection import Connection
 from .option import Option
 from .helpers import load_entrypoints
 from .priority import Priority
-from msys.management import Registration
+from msys.core.registration import Registration
 
 from typing import Optional, List
 
@@ -92,11 +92,24 @@ class Module(Child, IModule):
                 if match > matches:
                     return child.find_child(cid)
 
+
     def get_input(self, id: str, local=False):
         raise NotImplementedError
 
     def get_inputs(self, local=False) -> List[IConnectable]:
         raise NotImplementedError
+
+    def get_name(self) -> str:
+        return self.meta.name
+
+    def get_description(self) -> str:
+        return self.meta.description
+
+    def set_name(self, name: str):
+        self.meta.name = name
+
+    def set_description(self, description: str):
+        self.meta.description = description
 
     def get_node(self, id:str):
         if id == self.id:
@@ -186,7 +199,7 @@ class Module(Child, IModule):
         if not self.registration:
             return False
 
-        node = self.registration.launch_blueprint(key)
+        node = self.registration.launch(key)
         node.set_parent(self)
         self.add_node(node) # TODO remove id setter
         return True

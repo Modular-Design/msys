@@ -1,10 +1,10 @@
-from ..management import Processor
+from .processor import Processor
 
 from ..interfaces import INode
 from .child import Child, IChild
 from .metadata import Metadata
 from typing import Optional, List
-from .connectable import Connectable
+from .connectable import Connectable, ConnectableFlag
 from .option import Option
 
 
@@ -40,6 +40,18 @@ class Node(Child, INode):
 
         self.load(self.process.get_config())
 
+    def get_name(self) -> str:
+        return self.meta.name
+
+    def get_description(self) -> str:
+        return self.meta.description
+
+    def set_name(self, name: str):
+        self.meta.name = name
+
+    def set_description(self, description: str):
+        self.meta.description = description
+
     def get_processor(self) -> Processor:
         return process
 
@@ -64,10 +76,13 @@ class Node(Child, INode):
         if self.outputs:
             res["outputs"] = {"size": len(self.outputs), "removable": self.removable_outputs, "elements": []}
 
+        return res
+
 
     def to_dict(self) -> dict:
         self.update_inverted()
         res = Child.to_dict(self)
+        print("[Node] to_dict: " + str(res))
         res.update(self.get_configuration())
 
         if self.inputs:
@@ -108,7 +123,7 @@ class Node(Child, INode):
                         found = True
                         break
                 if not found:
-                    con = Connectable(parent=self)
+                    con = Connectable(parent=self, flag=ConnectableFlag.INPUT)
                     con.load(inp)
                     self.inputs.append(con)
 
@@ -134,7 +149,7 @@ class Node(Child, INode):
                         found = True
                         break
                 if not found:
-                    con = Connectable(parent=self, input=False)
+                    con = Connectable(parent=self, flag=ConnectableFlag.OUTPUT)
                     con.load(out)
                     self.outputs.append(con)
 
@@ -267,17 +282,17 @@ class Node(Child, INode):
         data = self.to_dict()
         return self.configure(data)
 
-    def add_input(self) -> bool:
+    def add_output(self) -> bool:
         data = self.to_dict()
-        data["inputs"] = {"size": len(self.inputs) + 1, "removable": self.removable_inputs, "elements": []}
+        data["outputs"] = {"size": len(self.outputs) + 1, "removable": self.removable_outputs, "elements": []}
         return self.configure(data)
 
-    def remove_input(self, id) -> bool:
-        input = self.get_input(id)
-        if input is None:
+    def remove_output(self, id) -> bool:
+        output = self.get_output(id)
+        if output is None:
             return False
 
-        self.inputs.remove(input)
+        self.outputs.remove(output)
 
         data = self.to_dict()
         return self.configure(data)

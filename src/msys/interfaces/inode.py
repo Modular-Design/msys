@@ -8,6 +8,22 @@ from abc import ABC, abstractmethod
 
 class INode(IChild, ISerializer, IUpdatable):
     @abstractmethod
+    def get_name(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_description(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_name(self, name: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_description(self, description: str):
+        raise NotImplementedError
+
+    @abstractmethod
     def find_child(self, cid: List[str], local=False) -> IChild:
         raise NotImplementedError
 

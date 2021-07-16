@@ -1,4 +1,5 @@
 from ..routers import Server
 from ..core import Module
+from ..management import Master
 
-module = Server(Module(nodes=["example", "example", "example"]))
+module = Master()# Module(nodes=["example", "example", "example"])
