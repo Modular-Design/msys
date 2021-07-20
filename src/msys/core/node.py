@@ -123,7 +123,7 @@ class Node(Child, INode):
                         found = True
                         break
                 if not found:
-                    con = Connectable(parent=self, flag=ConnectableFlag.INPUT)
+                    con = Connectable(parent=self, flag=ConnectableFlag.INPUT, id=out["id"])
                     con.load(inp)
                     self.inputs.append(con)
 
@@ -149,7 +149,7 @@ class Node(Child, INode):
                         found = True
                         break
                 if not found:
-                    con = Connectable(parent=self, flag=ConnectableFlag.OUTPUT)
+                    con = Connectable(parent=self, flag=ConnectableFlag.OUTPUT, id=out["id"])
                     con.load(out)
                     self.outputs.append(con)
 

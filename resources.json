@@ -8,8 +8,6 @@
     "test": {
         "name": "Module",
         "description": "A Master-Module",
-        "config": {
-            "id": "9d36e7cb-e767-4a86-8f87-afbb5560b5cc"
-        }
+        "config": {}
     }
 }

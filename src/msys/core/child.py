@@ -7,8 +7,6 @@ class Child(IChild, ISerializer):
                  parent: Optional["Child"] = None,
                  id: Optional[str] = None):
         self.parent = parent
-        if id is None:
-           id = str(uuid.uuid4())
         self.id = id
 
     def set_parent(self, parent) -> None:
@@ -17,6 +15,10 @@ class Child(IChild, ISerializer):
     def get_parent(self):
         return self.parent
 
+    def set_local_id(self, id: Optional[str] = None):
+        if not id:
+            id = str(uuid.uuid4())
+        self.id = id
 
     def get_local_id(self) -> str:
         return self.id
@@ -29,7 +31,8 @@ class Child(IChild, ISerializer):
 
     def to_dict(self) -> dict:
         res = dict()
-        res["id"] = self.id
+        if self.id:
+            res["id"] = self.id
         return res
 
     def load(self, json: dict) -> bool:
