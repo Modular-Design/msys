@@ -53,9 +53,11 @@ class Factory(APIRouter):
             return id
 
         @self.get("/{instance_id}/config")
-        async def get_instance(instance: str):
+        async def get_instance(instance_id: str):
             instance = self.instances.get(instance_id)
             if not instance:
+                print(self.instances.keys())
+                print(instance)
                 raise HTTPException(status_code=404, detail="Instance not found!")
             return instance.module.to_dict()
 

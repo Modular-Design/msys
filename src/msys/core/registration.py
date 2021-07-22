@@ -81,8 +81,8 @@ class Registration:
             json.dump(self.get_registered(["remote"]), f, indent = 4)
 
     def remove(self, rid: str):
-        if rid in self.registration.resources.keys():
-            self.registration.resources.pop(rid)
+        if rid in self.resources.keys():
+            self.resources.pop(rid)
             self.save()
             return True
         return False

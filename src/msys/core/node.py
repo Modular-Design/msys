@@ -61,20 +61,17 @@ class Node(Child, INode):
             dict: header config without input or output specific content
         """
         res = dict()
-        res["id"] = self.id
         res["ram"] = self.ram_reserve
         res["meta"] = self.meta.to_dict()
 
+        res["options"] = {"size": len(self.options), "removable": False, "elements": []}
         if self.options:
-            res["options"] = {"size": len(self.options), "addable": False, "elements": []}
             for opt in self.options:
                 res["options"]["elements"].append(opt.to_dict())
 
-        if self.inputs:
-            res["inputs"] = {"size": len(self.inputs), "removable": self.removable_inputs, "elements": []}
+        res["inputs"] = {"size": len(self.inputs), "removable": self.removable_inputs, "elements": []}
 
-        if self.outputs:
-            res["outputs"] = {"size": len(self.outputs), "removable": self.removable_outputs, "elements": []}
+        res["outputs"] = {"size": len(self.outputs), "removable": self.removable_outputs, "elements": []}
 
         return res
 

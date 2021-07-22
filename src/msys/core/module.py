@@ -40,14 +40,30 @@ class Module(Child, IModule):
                  ):
 
         super().__init__(parent, id)
+        self.ram_reserve = 20
         self.meta = Metadata(name=name, description=description)
 
         self.registration = registration
 
+        # add inputs
+        if inputs is None:
+            inputs = []
+        self.inputs = inputs
+
+        # add outputs
+        if outputs is None:
+            outputs = []
+        self.outputs = outputs
+
+        # add options
+        if options is None:
+            options = []
+        self.options = options
+
         # add nodes
         if nodes is None:
             nodes = []
-        self.nodes = []
+        self.nodes = nodes
 
         for node in nodes:
             if isinstance(node, Node):
@@ -57,17 +73,128 @@ class Module(Child, IModule):
 
         self.connections = []
 
+    def to_dict(self) -> dict:
+        # self.update_inverted()
+        res = Child.to_dict(self)
+        print("[Module] to_dict: " + str(res))
+
+        removable = self.is_editable()
+
+        res["ram"] = self.ram_reserve
+        res["meta"] = self.meta.to_dict()
+
+        res["options"] = {"size": len(self.options), "removable": removable, "elements": []}
+        if self.options:
+            for opt in self.options:
+                res["options"]["elements"].append(opt.to_dict())
+
+        res["inputs"] = {"size": len(self.inputs), "removable": removable, "elements": []}
+        if self.inputs:
+            for inp in self.inputs:
+                res["inputs"]["elements"].append(inp.to_dict())
+
+        res["outputs"] = {"size": len(self.outputs), "removable": removable, "elements": []}
+        if self.outputs:
+            for out in self.outputs:
+                res["outputs"]["elements"].append(out.to_dict())
+
+        res["nodes"] = {"size": len(self.nodes), "removable": removable, "elements": []}
+        if self.nodes:
+            for node in self.nodes:
+                res["nodes"]["elements"].append(node.to_dict())
+
+        res["connections"] = {"size": len(self.connections), "removable": True, "elements": []}
+        if self.connections:
+            for connection in self.connections:
+                res["connections"]["elements"].append(connection.to_dict())
+        return res
+
+    def load(self, dictionary: dict) -> bool:
+        Child.load(self, dictionary)
+
+        if "meta" in dictionary.keys():
+            if not self.meta.to_dict():
+                self.meta.load(dictionary["meta"])
+
+        if "options" in dictionary.keys():
+            options = dictionary["options"]
+
+            for opt in options["elements"]:
+                for option in self.options:
+                    if option.id == opt["id"]:
+                        if not option.load(opt):
+                            return False
+                        break
+
+        if "inputs" in dictionary.keys():
+            inputs = dictionary["inputs"]
+            for inp in inputs["elements"]:
+                found = False
+                for input in self.inputs:
+                    if input.id == inp["id"]:
+                        if not input.load(inp):
+                            return False
+                        found = True
+                        break
+                if not found:
+                    con = Connectable(parent=self, flag=ConnectableFlag.INPUT, id=out["id"])
+                    con.load(inp)
+                    self.inputs.append(con)
+
+            diff = len(self.inputs) - inputs["size"]
+            if diff > 0:
+                for input in self.inputs:
+                    found = False
+                    for inp in inputs["elements"]:
+                        if input.id == inp["id"]:
+                            found = True
+                            break
+                    if not found:
+                        self.inputs.remove(input)
+
+        if "outputs" in dictionary.keys():
+            outputs = dictionary["outputs"]
+            for out in outputs["elements"]:
+                found = False
+                for output in self.outputs:
+                    if output.id == out["id"]:
+                        if not output.load(out):
+                            return False
+                        found = True
+                        break
+                if not found:
+                    con = Connectable(parent=self, flag=ConnectableFlag.OUTPUT, id=out["id"])
+                    con.load(out)
+                    self.outputs.append(con)
+
+            diff = len(self.outputs) - outputs["size"]
+            if diff > 0:
+                for output in self.outputs:
+                    found = False
+                    for out in outputs["elements"]:
+                        if output.id == out["id"]:
+                            found = True
+                            break
+                    if not found:
+                        self.outputs.remove(output)
+
+        return True
+
+
     def add_input(self) -> bool:
         raise NotImplementedError
 
     def add_output(self) -> bool:
         raise NotImplementedError
 
+    def is_editable(self) -> bool:
+        return not bool(self.id)
+
     def are_inputs_removable(self) -> bool:
-        raise NotImplementedError
+        return self.is_editable()
 
     def are_outputs_removable(self) -> bool:
-        raise NotImplementedError
+        return self.is_editable()
 
     def find_child(self, cid: List[str], local=False) -> IChild:
         if self.get_global_id() == cid:
@@ -97,7 +224,9 @@ class Module(Child, IModule):
         raise NotImplementedError
 
     def get_inputs(self, local=False) -> List[IConnectable]:
-        raise NotImplementedError
+        if not local:
+            return self.outputs
+        return self.inputs
 
     def get_name(self) -> str:
         return self.meta.name
@@ -120,16 +249,18 @@ class Module(Child, IModule):
         return None
 
     def get_nodes(self) -> List[INode]:
-        raise self.nodes
+        return self.nodes
 
     def get_options(self) -> List["Option"]:
-        raise NotImplementedError
+        return self.options
 
     def get_output(self, id: str, local=False):
         raise NotImplementedError
 
     def get_outputs(self, local=False) -> List[IConnectable]:
-        raise NotImplementedError
+        if not local:
+            return self.inputs
+        return self.outputs
 
     def get_removable_inputs(self) -> List[IConnectable]:
         raise NotImplementedError
