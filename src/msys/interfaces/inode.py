@@ -48,19 +48,19 @@ class INode(IChild, ISerializer, IUpdatable):
         raise NotImplementedError
 
     @abstractmethod
-    def are_inputs_removable(self) -> bool:
+    def are_inputs_editable(self) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    def are_outputs_removable(self) -> bool:
+    def are_outputs_editable(self) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    def get_removable_inputs(self) -> List[IConnectable]:
+    def get_editable_inputs(self) -> List[IConnectable]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_removable_outputs(self) -> List[IConnectable]:
+    def get_editable_outputs(self) -> List[IConnectable]:
         raise NotImplementedError
 
     @abstractmethod

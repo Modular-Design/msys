@@ -24,14 +24,14 @@ class Connectable(Child, IConnectable):
 
                  # new
                  default_value: Optional[dict] = None,
-                 removable: Optional[bool] = False,
+                 editable: Optional[bool] = False,
                  flag: Optional[ConnectableFlag] = ConnectableFlag.INPUT,
                  ):
         super().__init__(parent, id)
         self.flag = flag
         self.meta = Metadata(name, description)
         self.data = default_value
-        self.removable = removable
+        self.editable = editable
 
         self.in_ref = None
         self.out_refs = []
@@ -104,7 +104,7 @@ class Connectable(Child, IConnectable):
     def to_dict(self) -> dict:
         res = Child.to_dict(self)
 
-        res["removable"] = self.removable
+        res["editable"] = self.editable
         res["data"] = self.get_data()
         res["meta"] = self.meta.to_dict()
         res["connected"] = self.is_connected()
@@ -118,8 +118,8 @@ class Connectable(Child, IConnectable):
             self.meta.load(json["meta"])
         if "data" in json.keys():
             self.data = json["data"]
-        if "removable" in json.keys():
-            self.removable = json["removable"]
+        if "editable" in json.keys():
+            self.editable = json["editable"]
         return True
 
     def update(self) -> bool:
@@ -168,8 +168,8 @@ class Connectable(Child, IConnectable):
             if conn_ref() is connection:
                 del self.out_refs[i]
 
-    def is_removable(self) -> bool:
-        return self.removable
+    def is_editable(self) -> bool:
+        return self.editable
 
     def is_connected(self) -> bool:
         if self.get_global() == ConnectableFlag.INPUT:

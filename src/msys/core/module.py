@@ -31,8 +31,8 @@ class Module(Child, IModule):
                  inputs: Optional[List[Connectable]] = None,
                  outputs: Optional[List[Connectable]] = None,
                  options: Optional[List[Option]] = None,
-                 removable_inputs: Optional[bool] = False,
-                 removable_outputs: Optional[bool] = False,
+                 editable_inputs: Optional[bool] = False,
+                 editable_outputs: Optional[bool] = False,
                  ram_reserve: Optional[float] = 0.0,
                  nodes: Optional[INode] = None,
                  connections: Optional[List[Connection]] = None,
@@ -78,46 +78,46 @@ class Module(Child, IModule):
         res = Child.to_dict(self)
         print("[Module] to_dict: " + str(res))
 
-        removable = self.is_editable()
+        editable = self.is_editable()
 
         res["ram"] = self.ram_reserve
         res["meta"] = self.meta.to_dict()
 
-        res["options"] = {"size": len(self.options), "removable": removable, "elements": []}
+        res["options"] = {"size": len(self.options), "editable": editable, "elements": []}
         if self.options:
             for opt in self.options:
                 res["options"]["elements"].append(opt.to_dict())
 
-        res["inputs"] = {"size": len(self.inputs), "removable": removable, "elements": []}
+        res["inputs"] = {"size": len(self.inputs), "editable": editable, "elements": []}
         if self.inputs:
             for inp in self.inputs:
                 res["inputs"]["elements"].append(inp.to_dict())
 
-        res["outputs"] = {"size": len(self.outputs), "removable": removable, "elements": []}
+        res["outputs"] = {"size": len(self.outputs), "editable": editable, "elements": []}
         if self.outputs:
             for out in self.outputs:
                 res["outputs"]["elements"].append(out.to_dict())
 
-        res["nodes"] = {"size": len(self.nodes), "removable": removable, "elements": []}
+        res["nodes"] = {"size": len(self.nodes), "editable": editable, "elements": []}
         if self.nodes:
             for node in self.nodes:
                 res["nodes"]["elements"].append(node.to_dict())
 
-        res["connections"] = {"size": len(self.connections), "removable": True, "elements": []}
+        res["connections"] = {"size": len(self.connections), "editable": True, "elements": []}
         if self.connections:
             for connection in self.connections:
                 res["connections"]["elements"].append(connection.to_dict())
         return res
 
-    def load(self, dictionary: dict) -> bool:
-        Child.load(self, dictionary)
+    def load(self, config: dict) -> bool:
+        Child.load(self, config)
 
-        if "meta" in dictionary.keys():
+        if "meta" in config.keys():
             if not self.meta.to_dict():
-                self.meta.load(dictionary["meta"])
+                self.meta.load(config["meta"])
 
-        if "options" in dictionary.keys():
-            options = dictionary["options"]
+        if "options" in config.keys():
+            options = config["options"]
 
             for opt in options["elements"]:
                 for option in self.options:
@@ -126,8 +126,8 @@ class Module(Child, IModule):
                             return False
                         break
 
-        if "inputs" in dictionary.keys():
-            inputs = dictionary["inputs"]
+        if "inputs" in config.keys():
+            inputs = config["inputs"]
             for inp in inputs["elements"]:
                 found = False
                 for input in self.inputs:
@@ -152,8 +152,8 @@ class Module(Child, IModule):
                     if not found:
                         self.inputs.remove(input)
 
-        if "outputs" in dictionary.keys():
-            outputs = dictionary["outputs"]
+        if "outputs" in config.keys():
+            outputs = config["outputs"]
             for out in outputs["elements"]:
                 found = False
                 for output in self.outputs:
@@ -178,6 +178,8 @@ class Module(Child, IModule):
                     if not found:
                         self.outputs.remove(output)
 
+        if "node" in config.keys():
+
         return True
 
 
@@ -190,10 +192,10 @@ class Module(Child, IModule):
     def is_editable(self) -> bool:
         return not bool(self.id)
 
-    def are_inputs_removable(self) -> bool:
+    def are_inputs_editable(self) -> bool:
         return self.is_editable()
 
-    def are_outputs_removable(self) -> bool:
+    def are_outputs_editable(self) -> bool:
         return self.is_editable()
 
     def find_child(self, cid: List[str], local=False) -> IChild:
@@ -262,16 +264,16 @@ class Module(Child, IModule):
             return self.inputs
         return self.outputs
 
-    def get_removable_inputs(self) -> List[IConnectable]:
+    def get_editable_inputs(self) -> List[IConnectable]:
         raise NotImplementedError
 
-    def get_removable_outputs(self) -> List[IConnectable]:
+    def get_editable_outputs(self) -> List[IConnectable]:
         raise NotImplementedError
 
     def is_changed(self) -> bool:
         raise NotImplementedError
 
-    def form_linear(self) -> bool:
+    def form_tree(self) -> bool:
         """
         Checks if connections between Nodes are definitly solveable in linear time.
         (Only one time to update all)
@@ -389,7 +391,7 @@ class Module(Child, IModule):
         priorities = [Priority(n) for n in self.nodes]
 
         priorities.sort()
-        if self.is_tree():
+        if self.form_tree():
             for p in priorities:
                 p.update()
             return True

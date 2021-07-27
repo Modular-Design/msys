@@ -7,6 +7,6 @@ class ISerializer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def load(self, json: dict) -> bool:
+    def load(self, config: dict) -> bool:
         raise NotImplementedError
 

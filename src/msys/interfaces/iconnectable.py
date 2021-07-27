@@ -79,7 +79,7 @@ class IConnectable(IChild, ISerializer, IUpdatable):
         raise NotImplementedError
 
     @abstractmethod
-    def is_removable(self) -> bool:
+    def is_editable(self) -> bool:
         raise NotImplementedError
 
     @abstractmethod
