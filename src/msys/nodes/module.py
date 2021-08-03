@@ -1,69 +1,31 @@
-from .node import Node
-from ..interfaces import IModule, INode, IChild
-from .child import Child
-from .metadata import Metadata
-from .connectable import Connectable, ConnectableFlag, IConnectable
-from .connection import Connection
-from .option import Option
-from .helpers import load_entrypoints
-from .priority import Priority
-from msys.core.registration import Registration
+from
+from pymsys.interfaces import ILink, IMetadata
+from typing import Dict
+
+from ..core import Registration, Priority, Connection, Connectable
 
 from typing import Optional, List
-
-from dataclasses import dataclass
-
-
-
 
 
 class Module(Child, IModule):
     def __init__(self,
-                 # Child
-                 parent: Optional["Module"] = None,
-                 id: Optional[str] = None,
-
-                 # Metadata
-                 name: Optional[str] = "Module",
-                 description: Optional[str] = "A Master-Module",
-
-                 # new
-                 inputs: Optional[List[Connectable]] = None,
-                 outputs: Optional[List[Connectable]] = None,
-                 options: Optional[List[Option]] = None,
-                 editable_inputs: Optional[bool] = False,
-                 editable_outputs: Optional[bool] = False,
-                 ram_reserve: Optional[float] = 0.0,
-                 nodes: Optional[INode] = None,
+                 parent: Optional[ILink] = None,
+                 meta: Optional[IMetadata] = None,
+                 inputs: Optional[Dict[str, Connectable]] = None,
+                 outputs: Optional[Dict[str, Connectable]] = None,
+                 options: Optional[Dict[str, Option]] = None,
+                 nodes: Optional[Dict[str, Node]] = None,
                  connections: Optional[List[Connection]] = None,
+                 ram_reserve: Optional[float] = 0.0,
                  registration: Optional[Registration] = None,
                  ):
 
-        super().__init__(parent, id)
+        super().__init__(parent, meta, inputs, outputs, options, )
         self.ram_reserve = 20
-        self.meta = Metadata(name=name, description=description)
 
         self.registration = registration
 
-        # add inputs
-        if inputs is None:
-            inputs = []
-        self.inputs = inputs
 
-        # add outputs
-        if outputs is None:
-            outputs = []
-        self.outputs = outputs
-
-        # add options
-        if options is None:
-            options = []
-        self.options = options
-
-        # add nodes
-        if nodes is None:
-            nodes = []
-        self.nodes = nodes
 
         for node in nodes:
             if isinstance(node, Node):

@@ -1,5 +1,5 @@
-from .inode import INode
-from abc import ABC, abstractmethod
+from pymsys.interfaces.inode import INode
+from abc import  abstractmethod
 from typing import List
 
 class IModule(INode):

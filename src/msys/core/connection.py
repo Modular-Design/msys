@@ -8,12 +8,11 @@ from typing import Optional
 import uuid
 
 
-class Connection(Child):
+class Connection(Link):
     def __init__(self,
-                 parent: "Module",
+                 parent: Optional["Module"],
                  output: Optional[Connectable] = None,
-                 input: Optional[Connectable]  = None,
-                 id: Optional[str] =None):
+                 input: Optional[Connectable] = None,):
 
         if not input.is_connectable(output):
             return None

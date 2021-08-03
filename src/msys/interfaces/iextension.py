@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 class IExtension(ABC):
     @abstractmethod
     def set_value(self):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def set_value(self):
-        raise NotImplementedError
+        pass

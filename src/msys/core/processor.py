@@ -1,11 +1,9 @@
-from msys.core.helpers import find_open_ports
-import uvicorn
-import multiprocessing as mp
+from .helpers import find_open_ports
 import subprocess as sp
-import inspect
 import requests
 import json
 from typing import Optional
+
 
 class Processor:
     def __init__(self,
@@ -64,7 +62,6 @@ class Processor:
                 print("[Process] dont found: " + str(ptype))
 
         self.started = False
-
 
     def get_config(self) -> dict:
         if self.url:

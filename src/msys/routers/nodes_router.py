@@ -1,7 +1,4 @@
-import requests
 from fastapi import APIRouter, HTTPException, Body
-from typing import Optional
-from ..core.node import Node
 
 
 class NodesRouter(APIRouter):

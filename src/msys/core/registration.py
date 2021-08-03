@@ -1,5 +1,5 @@
-from msys.core.processor import Processor
-from msys.core.helpers import load_entrypoints
+from .processor import Processor
+from .helpers import load_entrypoints
 from ..interfaces import INode
 import urllib
 from pathlib import Path
@@ -17,12 +17,12 @@ class Registration:
 
         if not storefile:
             self.storefile = "resources.json"
-        self.sources= sources + [self.storefile]
-        self.resources = dict() # {"id": "name", "description",
-                                # "config" or
-                                # "location", "limit":int or
-                                # "remote",
-                                # "instances" ["Process1", "Process2", etc.]}
+        self.sources = sources + [self.storefile]
+        self.resources = dict()  # {"id": "name", "description",
+        # "config" or
+        # "location", "limit":int or
+        # "remote",
+        # "instances" ["Process1", "Process2", etc.]}
         self.load()
 
     def get_registered(self, exclude: Optional[List[str]] = None) -> dict:
@@ -78,7 +78,7 @@ class Registration:
     def save(self):
         print("[Registration] saves resources")
         with open(self.storefile, "w+") as f:
-            json.dump(self.get_registered(["remote"]), f, indent = 4)
+            json.dump(self.get_registered(["remote"]), f, indent=4)
 
     def remove(self, rid: str):
         if rid in self.resources.keys():
@@ -118,7 +118,6 @@ class Registration:
                 elif "remote" in meta.keys():
                     resource["remote"] = meta["remote"]
 
-
                 self.resources[key] = resource
 
         # merge entrypoints
@@ -132,7 +131,8 @@ class Registration:
 
                 meta = obj.to_dict()["meta"]
 
-                resource = dict(name=entry.name, description="", location="uvicorn " + entry.value + " --port {port}", limit=1) # TODO: delete "limit=1" later
+                resource = dict(name=entry.name, description="", location="uvicorn " + entry.value + " --port {port}",
+                                limit=1)  # TODO: delete "limit=1" later
 
                 if "name" in meta.keys():
                     resource["name"] = meta["name"]
@@ -142,10 +142,7 @@ class Registration:
 
                 self.resources[entry.name] = resource
 
-
         self.save()
-
-
 
     def __launch__(self, rid: str, resource: dict) -> "Processor":
         limit = False
@@ -169,7 +166,7 @@ class Registration:
             process.start()
         return process
 
-    def terminate_resource(self, process:"Processor"):
+    def terminate_resource(self, process: "Processor"):
         # reduce counter
         process.stop()
         # delete if 0
@@ -179,7 +176,6 @@ class Registration:
         if rid not in self.resources.keys():
             return None
         self.resources[rid]["instances"].remove(process)
-
 
     def launch(self, rid: str) -> "INode":
         resource = dict()
@@ -195,15 +191,13 @@ class Registration:
             if not process:
                 raise NotImplementedError
                 return None
-            from ..core import Node
-            res = Node(process=process)
-            if "config" in resource.keys():
-                res.configure(resource["config"])
-            return res
+            from ..nodes import RemoteNode
+            res = RemoteNode(process=process)
 
         # no rid or is module
-        from ..core import Module
+        from ..nodes import Module
         res = Module(registration=self)
+
         if "config" in resource.keys():
             res.load(resource["config"])
 
