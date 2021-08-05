@@ -1,239 +1,61 @@
-from
-from pymsys.interfaces import ILink, IMetadata
-from typing import Dict
+from pymsys import ILink, IMetadata, IConnectable, INode, IConnection
+from pymsys import Connectable, Option, Node, UUIDGenerator, UpdatableChildList
+from typing import Dict, Optional, List
 
-from ..core import Registration, Priority, Connection, Connectable
+from ..generators import RegisterGenerator
 
-from typing import Optional, List
+from ..interfaces import IModule
+from .remote_node import RemoteNode
+
+from ..core import Registration, Priority, Connection
 
 
-class Module(Child, IModule):
+class Module(Node, IModule):
     def __init__(self,
-                 parent: Optional[ILink] = None,
                  meta: Optional[IMetadata] = None,
-                 inputs: Optional[Dict[str, Connectable]] = None,
-                 outputs: Optional[Dict[str, Connectable]] = None,
+                 inputs: Optional[Dict[str, IConnectable]] = None,
+                 outputs: Optional[Dict[str, IConnectable]] = None,
                  options: Optional[Dict[str, Option]] = None,
-                 nodes: Optional[Dict[str, Node]] = None,
-                 connections: Optional[List[Connection]] = None,
+                 nodes: Optional[Dict[str, INode]] = None,
+                 connections: Optional[List[IConnection]] = None,
                  ram_reserve: Optional[float] = 0.0,
                  registration: Optional[Registration] = None,
-                 ):
-
-        super().__init__(parent, meta, inputs, outputs, options, )
-        self.ram_reserve = 20
+                 parent: Optional[ILink] = None,
+                 **kwargs):
 
         self.registration = registration
+        self.nodes = UpdatableChildList(
+            nodes,
+            RegisterGenerator(
+                register=registration,
+                generated_class=RemoteNode,
+                generate_name=False,
+            )
+        )
+        self.connections = UpdatableChildList(
+            connections,
+            UUIDGenerator(
+                generated_class=Connection,
+                generate_name=False,
+            )
+        )
+        super().__init__(
+            meta=meta,
+            inputs=inputs,
+            outputs=outputs,
+            options=options,
+            input_generator=UUIDGenerator(default_class=Connectable, generate_name=False),
+            output_generator=UUIDGenerator(default_class=Connectable, generate_name=False),
+            option_generator=UUIDGenerator(default_class=RemoteNode, generate_name=False),
+            ram_reserve=ram_reserve,
+            parent=parent,
+            nodes=self.nodes,
+            connections=self.connections,
+            **kwargs
+        )
 
-
-
-        for node in nodes:
-            if isinstance(node, Node):
-                self.nodes.append(node)
-            if type(node) == str:
-                self.launch(node)
-
-        self.connections = []
-
-    def to_dict(self) -> dict:
-        # self.update_inverted()
-        res = Child.to_dict(self)
-        print("[Module] to_dict: " + str(res))
-
-        editable = self.is_editable()
-
-        res["ram"] = self.ram_reserve
-        res["meta"] = self.meta.to_dict()
-
-        res["options"] = {"size": len(self.options), "editable": editable, "elements": []}
-        if self.options:
-            for opt in self.options:
-                res["options"]["elements"].append(opt.to_dict())
-
-        res["inputs"] = {"size": len(self.inputs), "editable": editable, "elements": []}
-        if self.inputs:
-            for inp in self.inputs:
-                res["inputs"]["elements"].append(inp.to_dict())
-
-        res["outputs"] = {"size": len(self.outputs), "editable": editable, "elements": []}
-        if self.outputs:
-            for out in self.outputs:
-                res["outputs"]["elements"].append(out.to_dict())
-
-        res["nodes"] = {"size": len(self.nodes), "editable": editable, "elements": []}
-        if self.nodes:
-            for node in self.nodes:
-                res["nodes"]["elements"].append(node.to_dict())
-
-        res["connections"] = {"size": len(self.connections), "editable": True, "elements": []}
-        if self.connections:
-            for connection in self.connections:
-                res["connections"]["elements"].append(connection.to_dict())
-        return res
-
-    def load(self, config: dict) -> bool:
-        Child.load(self, config)
-
-        if "meta" in config.keys():
-            if not self.meta.to_dict():
-                self.meta.load(config["meta"])
-
-        if "options" in config.keys():
-            options = config["options"]
-
-            for opt in options["elements"]:
-                for option in self.options:
-                    if option.id == opt["id"]:
-                        if not option.load(opt):
-                            return False
-                        break
-
-        if "inputs" in config.keys():
-            inputs = config["inputs"]
-            for inp in inputs["elements"]:
-                found = False
-                for input in self.inputs:
-                    if input.id == inp["id"]:
-                        if not input.load(inp):
-                            return False
-                        found = True
-                        break
-                if not found:
-                    con = Connectable(parent=self, flag=ConnectableFlag.INPUT, id=out["id"])
-                    con.load(inp)
-                    self.inputs.append(con)
-
-            diff = len(self.inputs) - inputs["size"]
-            if diff > 0:
-                for input in self.inputs:
-                    found = False
-                    for inp in inputs["elements"]:
-                        if input.id == inp["id"]:
-                            found = True
-                            break
-                    if not found:
-                        self.inputs.remove(input)
-
-        if "outputs" in config.keys():
-            outputs = config["outputs"]
-            for out in outputs["elements"]:
-                found = False
-                for output in self.outputs:
-                    if output.id == out["id"]:
-                        if not output.load(out):
-                            return False
-                        found = True
-                        break
-                if not found:
-                    con = Connectable(parent=self, flag=ConnectableFlag.OUTPUT, id=out["id"])
-                    con.load(out)
-                    self.outputs.append(con)
-
-            diff = len(self.outputs) - outputs["size"]
-            if diff > 0:
-                for output in self.outputs:
-                    found = False
-                    for out in outputs["elements"]:
-                        if output.id == out["id"]:
-                            found = True
-                            break
-                    if not found:
-                        self.outputs.remove(output)
-
-        if "node" in config.keys():
-
-        return True
-
-
-    def add_input(self) -> bool:
-        raise NotImplementedError
-
-    def add_output(self) -> bool:
-        raise NotImplementedError
-
-    def is_editable(self) -> bool:
-        return not bool(self.id)
-
-    def are_inputs_editable(self) -> bool:
-        return self.is_editable()
-
-    def are_outputs_editable(self) -> bool:
-        return self.is_editable()
-
-    def find_child(self, cid: List[str], local=False) -> IChild:
-        if self.get_global_id() == cid:
-            return self
-
-        def get_matches(clist: list):
-            for i in range(len(clist)):
-                if clist[i] != cid[i]:
-                    return i
-
-
-        matches = get_matches(self.get_global_id())
-
-        childs = self.inputs + self.outputs
-        for child in childs:
-            if child.get_global_id() == cid:
-                return child
-
-        if not local:
-            for child in childs:
-                match = get_matches(child.get_global_id())
-                if match > matches:
-                    return child.find_child(cid)
-
-
-    def get_input(self, id: str, local=False):
-        raise NotImplementedError
-
-    def get_inputs(self, local=False) -> List[IConnectable]:
-        if not local:
-            return self.outputs
-        return self.inputs
-
-    def get_name(self) -> str:
-        return self.meta.name
-
-    def get_description(self) -> str:
-        return self.meta.description
-
-    def set_name(self, name: str):
-        self.meta.name = name
-
-    def set_description(self, description: str):
-        self.meta.description = description
-
-    def get_node(self, id:str):
-        if id == self.id:
-            return self
-        for node in self.nodes:
-            if node.id == id:
-                return node
-        return None
-
-    def get_nodes(self) -> List[INode]:
+    def get_nodes(self) -> UpdatableChildList:
         return self.nodes
-
-    def get_options(self) -> List["Option"]:
-        return self.options
-
-    def get_output(self, id: str, local=False):
-        raise NotImplementedError
-
-    def get_outputs(self, local=False) -> List[IConnectable]:
-        if not local:
-            return self.inputs
-        return self.outputs
-
-    def get_editable_inputs(self) -> List[IConnectable]:
-        raise NotImplementedError
-
-    def get_editable_outputs(self) -> List[IConnectable]:
-        raise NotImplementedError
-
-    def is_changed(self) -> bool:
-        raise NotImplementedError
 
     def form_tree(self) -> bool:
         """
@@ -271,32 +93,13 @@ class Module(Child, IModule):
                 return False
         return True
 
-    def remove_input(self, id) -> bool:
-        raise NotImplementedError
-
-    def remove_output(self, id) -> bool:
-        raise NotImplementedError
-
-    def update(self) -> bool:
-        changed = self.inputs.update()
-
-        if changed:
-            self.solve()
-
-        changed = self.outputs.update()
-        return changed
-
-    def add_node(self,
-                 node: Node):
-        self.nodes.append(node)
-
     def launch(self, key: str):
         if not self.registration:
             return False
 
         node = self.registration.launch(key)
         node.set_parent(self)
-        self.add_node(node) # TODO remove id setter
+        self.add_node(node)  # TODO remove id setter
         return True
 
     def connect_via_ids(self, id0: "Connectable", id1: "Connectable"):
@@ -322,7 +125,7 @@ class Module(Child, IModule):
         if c0type == c1type:
             return []
 
-        if c0type == ConnectableFlag.INPUT:
+        if c0type == "inputs":
             input = connectable0
             output = connectable1
         else:
@@ -331,7 +134,7 @@ class Module(Child, IModule):
 
         return dict(output=output, input=input)
 
-    def connect(self,  output: "Connectable", input: "Connectable") -> bool:
+    def connect(self, output: "Connectable", input: "Connectable") -> bool:
         if Connection(self, output, input) is None:
             return True
         return False
@@ -344,8 +147,9 @@ class Module(Child, IModule):
                 return True
         return False
 
-
-    def solve(self) -> bool:
+    def process(self, input_changed: bool):
+        if not input_changed:
+            return True
         """
         solve all nodes
         """
@@ -390,4 +194,3 @@ class Module(Child, IModule):
                     dynamic.sort()
                     priorities = priorities[:start_from] + dynamic
         return True
-

@@ -38,39 +38,3 @@ def find_open_ports() -> int:
             res = sock.connect_ex(('localhost', port))
             if res != 0:
                 return port
-
-def list_parser(parent, key: str, list: list, config: dict):
-    if key in config.keys():
-        elements = config[key]
-        for element in elements["elements"]:
-            found = False
-            for existing_element in list:
-                if existing_element.id == element["id"]:
-                    if not existing_element.load(element):
-                        return False
-                    found = True
-                    break
-            if not found:
-                # add element
-                elem = None
-                if key == "intputs":
-                    elem = Connectable(parent=parent, flag=ConnectableFlag.INPUT, id=element["id"])
-                elif key == "outputs":
-                    elem = Connectable(parent=parent, flag=ConnectableFlag.OUTPUT, id=element["id"])
-                elif key == "nodes":
-                    elem = Node()
-                if elem is None:
-                    raise NotImplementedError
-                elem.load(element)
-                list.append(elem)
-
-        diff = len(list) - elements["size"]
-        if diff > 0: # to many elements
-            for existing_element in list:
-                found = False
-                for element in elements["elements"]:
-                    if output.id == element["id"]:
-                        found = True
-                        break
-                if not found:
-                    self.outputs.remove(output)

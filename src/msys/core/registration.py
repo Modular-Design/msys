@@ -1,6 +1,6 @@
 from .processor import Processor
 from .helpers import load_entrypoints
-from ..interfaces import INode
+from pymsys import INode
 import urllib
 from pathlib import Path
 import json
@@ -65,11 +65,12 @@ class Registration:
         if temp:
             entry = temp
 
-        if node.get_name():
-            entry["name"] = node.get_name()
+        meta = node.get_meta()
+        if meta.get_name():
+            entry["name"] = meta.get_name()
 
-        if node.get_description():
-            entry["description"] = node.get_description()
+        if meta.get_description():
+            entry["description"] = meta.get_description()
 
         entry["config"] = node.to_dict()
         self.resources.update({rid: entry})
@@ -178,19 +179,16 @@ class Registration:
         self.resources[rid]["instances"].remove(process)
 
     def launch(self, rid: str) -> "INode":
-        resource = dict()
-        if rid in self.resources.keys():
-            resource = self.resources[rid]
+        resource = self.resources.get(rid)
 
         if not resource and rid:
-            return None
+            raise KeyError
 
         res = None
         if "location" in resource.keys() or "":
             process = self.__launch__(rid, resource)
             if not process:
                 raise NotImplementedError
-                return None
             from ..nodes import RemoteNode
             res = RemoteNode(process=process)
 

@@ -1,4 +1,4 @@
-from msys.core.registrable import get_class_info, set_class_info
+from .core.registrable import get_class_info, set_class_info
 
 
 def load_entrypoints(entry_name: str):

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Body, WebSocket, WebSocketDisconnect
 from typing import Optional, List
 from .instance import Instance
-from ..core import Module
+from ..nodes import Module
 import json
 
 

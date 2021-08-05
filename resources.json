@@ -2,7 +2,7 @@
     "example": {
         "name": "ExampleModule",
         "description": "This is a example Module",
-        "location": "uvicorn pymsys.example:example --port {port}",
+        "location": "uvicorn pymsys.nodes.example:example --port {port}",
         "limit": 1
     },
     "test": {

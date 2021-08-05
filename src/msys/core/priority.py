@@ -1,4 +1,4 @@
-from ..interfaces import INode
+from pymsys import INode
 
 import time
 
@@ -13,28 +13,27 @@ class Priority:
 
         self.dt = 0
 
-
     def __lt__(self, other):
         # priority by:
         # lower connected inputs
-        if self.inputs != outher.inputs:
-            return self.inputs < outher.inputs
+        if self.inputs != other.inputs:
+            return self.inputs < other.inputs
 
         # then lower time score
-        if self.time != outher.time:
-            return self.time < outher.time
+        if self.time != other.time:
+            return self.time < other.time
 
         # then lowest change counter: connected inputs - input changes
-        if self.inputs - self.changes != outher.inputs - outher.changes:
-            return self.inputs - self.changes < outher.inputs - outher.changes
+        if self.inputs - self.changes != other.inputs - other.changes:
+            return self.inputs - self.changes < other.inputs - other.changes
 
         # then highest changes
-        if self.changes != outher.changes:
-            return self.changes > outher.changes
+        if self.changes != other.changes:
+            return self.changes > other.changes
 
         # then highest output connections
-        if self.outputs != outher.outputs:
-            return self.outputs < outher.outputs
+        if self.outputs != other.outputs:
+            return self.outputs < other.outputs
 
         return 1
 

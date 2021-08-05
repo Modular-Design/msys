@@ -1,6 +1,5 @@
 import click
 import uvicorn
-from ..core import Module, Node
 from ..routers.server import Server
 
 

@@ -1,3 +1,2 @@
-from .node import Node
-from .pnode import RemoteNode
+from .remote_node import RemoteNode
 from .module import Module

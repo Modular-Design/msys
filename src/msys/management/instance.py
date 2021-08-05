@@ -1,7 +1,7 @@
 from typing import Optional, List
 import uuid
-from ..interfaces import INode
-from ..core import Module
+from pymsys import INode
+from ..nodes import Module
 from fastapi import WebSocket
 
 class Instance:

@@ -1,7 +1,5 @@
 import weakref
-from ..interfaces import ISerializer, IConnectable
-from .connectable import Connectable, ConnectableFlag
-from .child import Child
+from pymsys import ISerializer, IConnectable, Connectable, Link
 
 import json
 from typing import Optional
@@ -12,7 +10,7 @@ class Connection(Link):
     def __init__(self,
                  parent: Optional["Module"],
                  output: Optional[Connectable] = None,
-                 input: Optional[Connectable] = None,):
+                 input: Optional[Connectable] = None, ):
 
         if not input.is_connectable(output):
             return None
@@ -71,8 +69,6 @@ class Connection(Link):
 
         self.parent.connections.remove(self)
 
-
-
     def to_dict(self) -> dict:
         config = Child.to_dict(self)
         config["meta"] = self.meta
@@ -84,24 +80,23 @@ class Connection(Link):
             return None
         return {json.dumps(output.complete_id()): {json.dumps(input.complete_id()): config}}
 
-
-    def load(self, json: dict) -> bool:
-        if not super().from_dict(json):
+    def load(self, config: dict) -> bool:
+        if not super().from_dict(config):
             return False
         if self.out_ref() is None:
-            self.out_ref = weakref.ref(parent.find(json.keys()[0]))
-        elif json.dumps(self.out_ref().complete_id()) == json.keys()[0]:
-            self.out_ref = weakref.ref(parent.find(json.keys()[0]))
+            self.out_ref = weakref.ref(config.find(config.keys()[0]))
+        elif json.dumps(self.out_ref().complete_id()) == config.keys()[0]:
+            self.out_ref = weakref.ref(parent.find(config.keys()[0]))
 
-        json = json.get(json.dumps(self.out_ref().complete_id()))
-        if not json:
+        config = config.get(json.dumps(self.out_ref().complete_id()))
+        if not config:
             return False
         if self.in_ref() is None:
-            self.in_ref = weakref.ref(parent.find(json.keys()[0]))
-        elif json.dumps(self.in_ref().complete_id()) == json.keys()[0]:
-            self.in_ref = weakref.ref(parent.find(json.keys()[0]))
+            self.in_ref = weakref.ref(parent.find(config.keys()[0]))
+        elif json.dumps(self.in_ref().complete_id()) == config.keys()[0]:
+            self.in_ref = weakref.ref(parent.find(config.keys()[0]))
 
-        config = json.get(json.dumps(self.in_ref().complete_id()))
+        config = config.get(json.dumps(self.in_ref().complete_id()))
 
         Child.load(self, config)
         if "meta" in config.keys():
