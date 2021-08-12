@@ -28,14 +28,14 @@ class Module(Node, IModule):
             nodes,
             RegisterGenerator(
                 register=registration,
-                generated_class=RemoteNode,
+                default_class=RemoteNode,
                 generate_name=False,
             )
         )
         self.connections = UpdatableChildList(
             connections,
             UUIDGenerator(
-                generated_class=Connection,
+                default_class=Connection,
                 generate_name=False,
             )
         )

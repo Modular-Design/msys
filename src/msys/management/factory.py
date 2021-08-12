@@ -82,12 +82,29 @@ class Factory(APIRouter):
 
 
         @self.put("/{instance_id}/config")
-        async def change_instance(instance_id: str):
-            pass
+        async def change_instance(instance_id: str, body=Body(
+                    ...,
+                )):
+            instance = self.instances.get(instance_id)
+            if not instance:
+                print(self.instances.keys())
+                print(instance)
+                raise HTTPException(status_code=404, detail="Instance not found!")
+            instance.module.load(json.loads(body))
+            return instance.module.to_dict()
 
         @self.post("/{instance_id}/update")
-        async def update_instance(instance_id: str):
-            pass
+        async def update_instance(instance_id: str,body=Body(
+                    ...,
+                )):
+            instance = self.instances.get(instance_id)
+            if not instance:
+                print(self.instances.keys())
+                print(instance)
+                raise HTTPException(status_code=404, detail="Instance not found!")
+            instance.module.load(json.loads(body))
+            instance.module.update()
+            return instance.module.to_dict()
 
         @self.get("/{instance_id}/save")
         async def save_instance(instance_id: str):
