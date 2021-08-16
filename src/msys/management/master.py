@@ -2,10 +2,11 @@ from fastapi import FastAPI, Body, Header
 from ..core import Registration
 from .factory import Factory
 from typing import Optional
+from ..__init__ import __version__
 
 class Master(FastAPI):
     def __init__(self):
-        super().__init__()
+        super().__init__(title="Master", version=__version__)
         self.registration = Registration()
         self.factory = Factory(self.registration)
         self.include_router(self.factory)
