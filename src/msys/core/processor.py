@@ -65,7 +65,7 @@ class Processor:
 
     def get_config(self) -> dict:
         if self.url:
-            response = requests.get(self.url + "/config")
+            response = requests.get(self.url + "/get")
             if response.status_code != 200:
                 return dict()
             return json.loads(response.content)
@@ -73,7 +73,7 @@ class Processor:
 
     def change_config(self, config:dict) -> dict:
         if self.url:
-            response = requests.post(self.url + "/config", config)
+            response = requests.post(self.url + "/change", config)
             if response.status_code != 200:
                 return dict()
             return json.loads(response.content)

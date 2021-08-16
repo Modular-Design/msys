@@ -33,7 +33,7 @@ class Master(FastAPI):
                 res[key] = own
             return res
 
-        @self.get("/{id}/config")
+        @self.get("/{id}/get")
         async def get_config(
                 id:str,
                 ):
@@ -42,7 +42,7 @@ class Master(FastAPI):
             print("[Master]: Node: " + str(node))
             return node.to_dict()
 
-        @self.post("/{id}/config")
+        @self.post("/{id}/change")
         def change_config(
                 id: str,
                 body=Body(
