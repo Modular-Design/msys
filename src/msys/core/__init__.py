@@ -1,6 +1,4 @@
-from .metadata import Metadata, Point
-from .option import Option
-from .module import Module
-from .connectable import Connectable, ConnectableFlag
+from .processor import Processor
+from .registration import Registration
+from .priority import Priority
 from .connection import Connection
-from .type import TypeInterface, Type

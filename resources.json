@@ -1,0 +1,13 @@
+{
+    "example": {
+        "name": "ExampleModule",
+        "description": "This is a example Module",
+        "location": "uvicorn pymsys.nodes.example:example --port {port}",
+        "limit": 1
+    },
+    "test": {
+        "name": "Module",
+        "description": "A Master-Module",
+        "config": {}
+    }
+}
