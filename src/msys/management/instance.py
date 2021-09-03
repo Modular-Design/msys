@@ -1,8 +1,9 @@
 from typing import Optional, List
 import uuid
-from pymsys import INode
+import json
 from ..nodes import Module
 from fastapi import WebSocket
+
 
 class Instance:
     def __init__(self, id: Optional[str] = None,

@@ -45,14 +45,14 @@ class Factory(APIRouter):
 
         @self.get("/open/{source}")
         async def open_instance(
-                source:str,
+                source: str,
         ):
             id = self.create_instance(source, source)
             if not id:
                 raise HTTPException(status_code=404, detail="Source not found!")
-            return id
+            return {"instance": id}
 
-        @self.get("/{instance_id}/config")
+        @self.get("/{instance_id}/get")
         async def get_instance(instance_id: str):
             instance = self.instances.get(instance_id)
             if not instance:
@@ -81,7 +81,7 @@ class Factory(APIRouter):
                     self.close_instance(instance_id)
 
 
-        @self.put("/{instance_id}/config")
+        @self.put("/{instance_id}/change")
         async def change_instance(instance_id: str, body=Body(
                     ...,
                 )):
@@ -126,12 +126,13 @@ class Factory(APIRouter):
 
 
     def get_instances(self, all=True):
-        res = []
+        res = {}
         if all:
-            res = list(self.registration.get_registered(exclude=["location", "remote"]).keys())
+            res = self.registration.get_registered(exclude=["location", "remote"])
         for key in self.instances.keys():
             if key not in res:
-                res.append(key)
+                instance = self.instances.get(key)
+                res[key] = instance.module.to_dict()
         return res
 
     def create_instance(self, load_id: Optional[str] = None, publish_id: Optional[str] = None) -> str:
